@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "dev.consistentlabs.myiqdevices.twa",
+      "sha256_cert_fingerprints": [
+        "54:4F:3D:61:C3:B5:30:83:DD:22:08:94:67:FA:68:D2:1F:45:1B:8F:86:45:D2:E7:A5:85:A2:A9:83:27:EF:0B"
+      ]
+    }
+  }
+]
