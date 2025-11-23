@@ -1,4 +1,4 @@
-const host = /*import.meta.env.VITE_APP_BACKEND;  */   "https://cognitus.consistentlabs.dev:3000";
+const host = import.meta.env.VITE_APP_BACKEND;  /* "https://cognitus.consistentlabs.dev:3000";*/
 
 export const endpoints = {
 

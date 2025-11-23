@@ -6,6 +6,7 @@ import { Button } from 'keep-react';
 import SpeechAvatar from '../../components/SpeechAvatar/SpeechAvatar'
 import Avatar2DComponent from '../../components/Avatar2DComponent/Avatar2DComponent';
 import TempChatbot2 from '../../components/TempChatbot2/TempChatbot2';
+import AvatarStreaming from '../../components/AvatarStreaming/AvatarStreaming'
 
 export default function TalkToAvatar() {
 
@@ -13,16 +14,12 @@ export default function TalkToAvatar() {
   const [currentDeviceId, setCurrentDeviceId] = useState('');
   const [configurationData, setConfigurationData] = useState();
   const [statusInit, setStatusInit] = useState(false);
-  // const [showSpeechAvatar, setShowSpeechAvatar] = useState(true); // Estado para alternar
 
   // Check current tablet configuration 
   const checkDevice = () => {
     try {
-      // const device_id = undefined;
       const check_id = localStorage.getItem('mayiq-device-id');
       if (check_id) {
-        // device_id = check_id;
-        // console.log('valor actual device_id => ', device_id);
         setEnabled(true);
       }
     } catch (error) {
@@ -34,6 +31,7 @@ export default function TalkToAvatar() {
     checkDevice();
   }, []);
 
+  // Current device id handler
   const changeStorageDeviceId = () => {
     try {
       localStorage.setItem('mayiq-device-id', currentDeviceId);
@@ -43,6 +41,7 @@ export default function TalkToAvatar() {
     }
   }
 
+  // Request to get the device id 
   const getDeviceConfig = async ({ device_id }: { device_id: string }) => {
     try {
       if (!device_id) return
@@ -61,6 +60,7 @@ export default function TalkToAvatar() {
     }
   }
 
+  // First Time Connection to get the device id
   const setDeviceId = async () => {
     try {
       if (!currentDeviceId) return alert('Debes ingresar el codigo de sincronizacion');
@@ -135,54 +135,21 @@ export default function TalkToAvatar() {
 
           {/* Conversation ocupa toda la pantalla */}
           {configurationData && (
-            <Avatar2DComponent />
+            <>
+            <AvatarStreaming />
+            {/*<Avatar2DComponent />*/}
+            </>
           )}
 
-          {/*configurationData && (
-            <div className="">
-              <Conversation configuration={configurationData} />
-            </div>
-          )*/}
-
-          {/* Botón de alternancia */}
-          {/* <div className="fixed bottom-8 left-4 flex items-center justify-center">
-            <Button
-              className="bg-blue-500 text-xl hover:bg-blue-600 text-white font-bold py-3 px-3 rounded-full shadow-lg flex items-center space-x-2"
-              onClick={() => setShowSpeechAvatar(!showSpeechAvatar)}
-            >
-              {showSpeechAvatar ? (
-                <>
-
-                  <span>Cambiar a Chat</span>
-                </>
-              ) : (
-                <>
-
-                  <span>Cambiar a Voz</span>
-                </>
-              )}
-            </Button>
-          </div>
-        */}
-
           {/* Mostrar SpeechAvatar y TempChatbot2 para el envio de mensajes ( para compartir funcionalidades ) */}
+          {/*
           <div className="fixed bottom-8 left-4">
             <SpeechAvatar setGlobalCurrentText={setGlobalCurrentText} />
           </div>
           <div className="fixed bottom-8 right-4">
             <TempChatbot2 globalCurrentText={globalCurrentText} />
           </div>
-
-          {/* Mostrar SpeechAvatar o TempChatbot2 según el estado */}
-          {/*showSpeechAvatar ? (
-            <div className="fixed bottom-8 right-4">
-              <SpeechAvatar setGlobalCurrentText={setGlobalCurrentText} />
-            </div>
-          ) : (
-            <div className="fixed bottom-8 right-4">
-              <TempChatbot2 globalCurrentText={globalCurrentText} />
-            </div>
-          )*/}
+      */}
         </div>
       )}
     </div>
