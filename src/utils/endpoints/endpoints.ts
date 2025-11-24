@@ -25,6 +25,9 @@ export const endpoints = {
   avatarStopSession: host + '/chatbot/avatar-stop-session',
   avatarRepeat: host + '/chatbot/avatar-repeat',
 
+  // Avatar Models handler
+  initModelAvatar: host + '/avatar/init-model',
+
   // STT 
   getSttToken: host + '/stt/token',
   uploadTranscription: host + '/stt/transcription',

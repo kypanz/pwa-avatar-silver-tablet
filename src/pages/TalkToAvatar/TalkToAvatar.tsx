@@ -41,6 +41,31 @@ export default function TalkToAvatar() {
     }
   }
 
+  const [portModelAvatar, setPortModelAvatar] = useState("");
+  const syncModel = async ({
+    avatar_name,
+    avatar_model_name,
+    avatar_instructions,
+    avatar_voice
+  }) => {
+    try {
+    const payload = {
+      model_id: avatar_model_name,
+      avatar_name:  avatar_name.split("AVATAR_")[1],
+      avatar_instructions: avatar_instructions,
+      avatar_voice: avatar_voice
+    }
+    const response = await axios.post(endpoints.initModelAvatar, payload, {withCredentials : true});
+    if(response.status == 200) {
+      setPortModelAvatar(response.data.port)
+    }
+    console.log("response syncModel => ", response);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
   // Request to get the device id 
   const getDeviceConfig = async ({ device_id }: { device_id: string }) => {
     try {
@@ -54,6 +79,13 @@ export default function TalkToAvatar() {
         localStorage.setItem('user_id', response.data.message.user_id);
         setEnabled(true);
         setStatusInit(true);
+        const _data = response.data.message;
+        await syncModel({
+          avatar_name : _data.avatar_name,
+    avatar_model_name : _data.style_avatar,
+    avatar_instructions : _data.avatar_instructions,
+    avatar_voice : _data.avatar_voice
+        })
       }
     } catch (error) {
       console.error(error);
@@ -134,9 +166,9 @@ export default function TalkToAvatar() {
         <div className="w-full h-full">
 
           {/* Conversation ocupa toda la pantalla */}
-          {configurationData && (
+          {(configurationData && portModelAvatar ) && (
             <>
-            <AvatarStreaming />
+            <AvatarStreaming port={portModelAvatar} syncModel={syncModel}/>
             {/*<Avatar2DComponent />*/}
             </>
           )}

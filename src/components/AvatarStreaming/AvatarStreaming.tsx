@@ -4,7 +4,7 @@ import './AvatarStreaming.css';
 
 type ChatMsg = { sender: string; text: string; type: 'user' | 'system' };
 
-export default function AvatarStreaming({port} : {port: String}) {
+export default function AvatarStreaming({port, syncModel} : {port: String, syncModel:any}) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -97,7 +97,7 @@ export default function AvatarStreaming({port} : {port: String}) {
     setConnecting(false);
   };
 
-  const start = () => {
+  const start = async () => {
     setConnecting(true);
     const config: RTCConfiguration | any = { sdpSemantics: 'unified-plan' };
     if (useStun) config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
