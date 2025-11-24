@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react'
 import { endpoints } from '../../utils/endpoints/endpoints';
 import axios from 'axios';
 import { Button } from 'keep-react';
-import SpeechAvatar from '../../components/SpeechAvatar/SpeechAvatar'
-import Avatar2DComponent from '../../components/Avatar2DComponent/Avatar2DComponent';
-import TempChatbot2 from '../../components/TempChatbot2/TempChatbot2';
+// import SpeechAvatar from '../../components/SpeechAvatar/SpeechAvatar'
+// import Avatar2DComponent from '../../components/Avatar2DComponent/Avatar2DComponent';
+// import TempChatbot2 from '../../components/TempChatbot2/TempChatbot2';
 import AvatarStreaming from '../../components/AvatarStreaming/AvatarStreaming'
 
 export default function TalkToAvatar() {
@@ -47,6 +47,11 @@ export default function TalkToAvatar() {
     avatar_model_name,
     avatar_instructions,
     avatar_voice
+  }:{
+    avatar_name : string,
+    avatar_model_name : string,
+    avatar_instructions : string,
+    avatar_voice : string
   }) => {
     try {
     const payload = {
@@ -113,7 +118,7 @@ export default function TalkToAvatar() {
     }
   }
 
-  const [globalCurrentText, setGlobalCurrentText] = useState('');
+  // const [globalCurrentText, setGlobalCurrentText] = useState('');
 
 
 
@@ -208,7 +213,7 @@ export default function TalkToAvatar() {
           {(configurationData && portModelAvatar ) && (
             <>
             {(isGameActive) ? <RenderGame /> : null}
-            <AvatarStreaming port={portModelAvatar} syncModel={syncModel}/> 
+            <AvatarStreaming port={portModelAvatar} /> 
             {/*<Avatar2DComponent />*/}
             </>
           )}

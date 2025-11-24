@@ -4,7 +4,7 @@ import './AvatarStreaming.css';
 
 type ChatMsg = { sender: string; text: string; type: 'user' | 'system' };
 
-export default function AvatarStreaming({port, syncModel} : {port: String, syncModel:any}) {
+export default function AvatarStreaming({port} : {port: String}) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
