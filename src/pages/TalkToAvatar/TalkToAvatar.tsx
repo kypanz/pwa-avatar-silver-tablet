@@ -115,6 +115,45 @@ export default function TalkToAvatar() {
 
   const [globalCurrentText, setGlobalCurrentText] = useState('');
 
+
+
+    const [isGameActive, setIsGameActive] = useState(false);
+  const getStatusGame = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_APP_AVATAR}:${portModelAvatar}/game/status`);
+      if(response.status == 200) {
+        const game_status = (response.data.status == "active") ? true : false;
+        console.log("estado del juego : ", game_status);
+        setIsGameActive(game_status);
+      }
+    } catch (error) {
+      console.error("Error on get status game => ", error);
+    }
+  }
+
+  useEffect(() => {
+    // llamada inicial
+    getStatusGame();
+
+    // intervalo cada 5 segundos
+    const intervalId = setInterval(() => {
+      getStatusGame();
+    }, 5000);
+
+    // cleanup cuando se desmonta el componente
+    return () => clearInterval(intervalId);
+  }, [portModelAvatar]);
+
+  const RenderGame = () => {
+    return(
+      <>
+      {/* @ts-ignore */}
+      <iframe src="https://h5p.org/h5p/embed/707" width="1090" height="1294" frameborder="0" allowfullscreen="allowfullscreen" allow="geolocation *; microphone *; camera *; midi *; encrypted-media *" title="Memory Game"></iframe><script src="https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js" charset="UTF-8"></script>
+      </>
+    )
+  }
+
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
       {/* Estado de conexión */}
@@ -168,7 +207,8 @@ export default function TalkToAvatar() {
           {/* Conversation ocupa toda la pantalla */}
           {(configurationData && portModelAvatar ) && (
             <>
-            <AvatarStreaming port={portModelAvatar} syncModel={syncModel}/>
+            {(isGameActive) ? <RenderGame /> : null}
+            <AvatarStreaming port={portModelAvatar} syncModel={syncModel}/> 
             {/*<Avatar2DComponent />*/}
             </>
           )}
