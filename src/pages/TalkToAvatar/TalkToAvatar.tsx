@@ -125,7 +125,7 @@ export default function TalkToAvatar() {
     const [isGameActive, setIsGameActive] = useState(false);
   const getStatusGame = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_AVATAR}:${portModelAvatar}/game/status`);
+      const response = await axios.get(`https://p${portModelAvatar}${import.meta.env.VITE_APP_AVATAR}/game/status`);
       if(response.status == 200) {
         const game_status = (response.data.status == "active") ? true : false;
         console.log("estado del juego : ", game_status);

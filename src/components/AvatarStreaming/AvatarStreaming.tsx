@@ -80,7 +80,7 @@ export default function AvatarStreaming({port} : {port: String}) {
     });
 
     const offer = pcInstance.localDescription!;
-    const response = await fetch(`https://localhost:${port}/offer`, {
+    const response = await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/offer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sdp: offer.sdp, type: offer.type })
@@ -154,7 +154,7 @@ export default function AvatarStreaming({port} : {port: String}) {
     setChatInput('');
 
     try {
-      await fetch(`https://localhost:${port}/human`, {
+      await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -178,7 +178,7 @@ export default function AvatarStreaming({port} : {port: String}) {
     if (!text) return;
 
     try {
-      await fetch(`https://localhost:${port}/human`, {
+      await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -201,7 +201,7 @@ export default function AvatarStreaming({port} : {port: String}) {
   // ---------------------------
   const startRecordOnServer = async () => {
     try {
-      const resp = await fetch(`https://localhost:${port}/record`, {
+      const resp = await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/record`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'start_record', sessionid: Number(sessionId) })
@@ -221,7 +221,7 @@ export default function AvatarStreaming({port} : {port: String}) {
 
   const stopRecordOnServer = async () => {
     try {
-      const resp = await fetch(`https://localhost:${port}/record`, {
+      const resp = await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/record`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'end_record', sessionid: Number(sessionId) })
@@ -346,7 +346,7 @@ export default function AvatarStreaming({port} : {port: String}) {
       if (recognized) {
         // enviar recognized text to /human
         try {
-          await fetch(`https:localhost:${port}/human`, {
+          await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
