@@ -17,7 +17,7 @@ export default function AvatarStreaming({port} : {port: String}) {
   const [sessionId, setSessionId] = useState<number>(0);
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [useStun] = useState(false);
+  // const [useStun] = useState(false);
   const [activeTab, setActiveTab] = useState<"chat" | "tts">("chat");
 
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
@@ -113,8 +113,9 @@ export default function AvatarStreaming({port} : {port: String}) {
     },
   ];
 
+ // const unified_plan : any = "unified-plan"
  const config: RTCConfiguration = {
-    sdpSemantics: 'unified-plan' as any,
+    // sdpSemantics: unified_plan, //'unified-plan' as any,
     iceServers,
   };
 
