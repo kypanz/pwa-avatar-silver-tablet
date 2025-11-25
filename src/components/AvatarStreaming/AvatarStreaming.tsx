@@ -99,10 +99,31 @@ export default function AvatarStreaming({port} : {port: String}) {
 
   const start = async () => {
     setConnecting(true);
-    const config: RTCConfiguration | any = { sdpSemantics: 'unified-plan' };
-    if (useStun) config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
 
-    const pcInstance = new RTCPeerConnection(config);
+ const iceServers: RTCIceServer[] = [
+    // Opcional: STUN público, por si alguna conexión P2P sirve
+    // {
+    //   urls: 'stun:stun.l.google.com:19302',
+    // },
+    // Importante: tu TURN en la VPS
+    {
+      urls: 'turn:3.15.152.112:3478',
+      username: 'avatar',
+      credential: 'avatarpass',
+    },
+  ];
+
+ const config: RTCConfiguration = {
+    sdpSemantics: 'unified-plan' as any,
+    iceServers,
+  };
+
+  const pcInstance = new RTCPeerConnection(config);
+
+    // const config: RTCConfiguration | any = { sdpSemantics: 'unified-plan' };
+    // if (useStun) config.iceServers = [{ urls: [''] }];
+
+    // const pcInstance = new RTCPeerConnection(config);
 
     pcInstance.ontrack = (evt) => {
       if (evt.track.kind === 'video' && videoRef.current) {
