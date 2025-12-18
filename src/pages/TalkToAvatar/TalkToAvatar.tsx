@@ -149,6 +149,39 @@ export default function TalkToAvatar() {
     return () => clearInterval(intervalId);
   }, [portModelAvatar]);
 
+  // Added by Kyp4nz
+  const [messageToSay, setMessageToSay] = useState("");
+  const checkScheduledMessages = async () => {
+    try {
+      const device_id = localStorage.getItem('mayiq-device-id');
+      if (device_id) {
+        const payload = { device_id: device_id };
+        const response = await axios.post(endpoints.getTelegramMessages, payload);
+        if (response.status == 200) {
+          if (response.data.message == null) {
+            return console.log('No hay tareas programadas por ahora.');
+          } 
+          if (response.data.message) {
+            const content_message = response.data.message.message;  
+            const msg = '[ Recordatorio ] : ' + content_message;
+            console.log('recoo => ', msg);
+            setMessageToSay("Tienes un recordatorio, recuerda que " + content_message); 
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error on get telegram messages for this tablet => ', error);
+    }
+  }
+
+  useEffect(() => {
+    setInterval(() => {
+      checkScheduledMessages();
+    }, 5000);
+  }, []);
+
+  // End added
+
   const RenderGame = () => {
     return(
       <>
@@ -213,7 +246,7 @@ export default function TalkToAvatar() {
           {(configurationData && portModelAvatar ) && (
             <>
             {(isGameActive) ? <RenderGame /> : null}
-            <AvatarStreaming port={portModelAvatar} /> 
+            <AvatarStreaming port={portModelAvatar} messageToSay={messageToSay} setMessageToSay={setMessageToSay}/> 
             {/*<Avatar2DComponent />*/}
             </>
           )}

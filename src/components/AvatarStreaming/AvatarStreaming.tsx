@@ -4,7 +4,16 @@ import './AvatarStreaming.css';
 
 type ChatMsg = { sender: string; text: string; type: 'user' | 'system' };
 
-export default function AvatarStreaming({port} : {port: String}) {
+export default function AvatarStreaming(
+  {
+    port,
+    messageToSay,
+    setMessageToSay
+  } : {
+    port: String,
+    messageToSay: String,
+    setMessageToSay: any
+  }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -35,6 +44,49 @@ export default function AvatarStreaming({port} : {port: String}) {
     const sender = type === 'user' ? 'Tú' : 'Sistema';
     setChatMessages((prev) => [...prev, { sender, text, type }]);
   };
+
+  console.log('message => ', messageToSay, setMessageToSay);
+
+  // Added by Kyp4nz
+  // useEffect(() => {
+  //   setInterval(async () => {
+  //    if(messageToSay != "" && sessionId != 0) {
+  //      await sendScheduledEcho({text : messageToSay}) 
+  //      // await new Promise((resolve, reject) => { 
+  //      // try {
+  //      //   setTimeout(() => {
+  //      //    resolve(true);
+  //      //   }, 2000);
+  //      // } catch (error) {
+  //      //   reject(false);
+  //      // } 
+  //      // });
+  //    } 
+  //   }, 20000);
+  // }, []);
+
+  // const sendScheduledEcho = async ({text} : {text : string}) => {
+  //   if (!text || text == "") return;
+  //
+  //   try {
+  //     await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         text,
+  //         type: 'echo',
+  //         interrupt: false,
+  //         sessionid: Number(sessionId)
+  //       })
+  //     });
+  //     addChatMessage(`solicitud enviada: "${text}"`, 'system');
+  //     setMessageToSay("");
+  //   } catch (err) {
+  //     console.error('Error enviando /human echo:', err);
+  //     addChatMessage('Fallo al enviar TTS al backend.', 'system');
+  //   }
+  // };
+  // End Added
 
   useEffect(() => {
     // cleanup on unmount
@@ -483,7 +535,7 @@ export default function AvatarStreaming({port} : {port: String}) {
                     Modo conversación
                   </button>
                 </li>
-                {/*              <li className="nav-item" role="presentation">
+                            <li className="nav-item" role="presentation">
                   <button
                     className={`nav-link ${activeTab === "tts" ? "bg-white text-blue-500" : "bg-white text-black"}`}
                     type="button"
@@ -493,7 +545,7 @@ export default function AvatarStreaming({port} : {port: String}) {
                     Modo de lectura en voz alta
                   </button>
                 </li>
-*/}
+
               </ul>
             </div>
 
