@@ -159,7 +159,7 @@ export default function AvatarStreaming(
     // },
     // Importante: tu TURN en la VPS
     {
-      urls: 'turn:3.15.152.112:3478',
+      urls: 'turn:18.188.178.197:3478',
       username: 'avatar',
       credential: 'avatarpass',
     },
