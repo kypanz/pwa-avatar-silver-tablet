@@ -313,6 +313,106 @@ export default function AvatarStreaming(
     }
   };
 
+
+
+// Recording using Whisper | Added by Kyp4nz
+
+const sttSocketRef = useRef<WebSocket | null>(null);
+const audioCtxRef = useRef<AudioContext | null>(null);
+const processorRef = useRef<ScriptProcessorNode | null>(null);
+const sttStartedRef = useRef(false);
+const [text, setText] = useState("");
+
+
+async function startContinuousSTT() {
+  sttSocketRef.current = new WebSocket(`wss://p${port}${import.meta.env.VITE_APP_AVATAR}/stt`);
+  sttSocketRef.current.binaryType = "arraybuffer";
+
+  sttSocketRef.current.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "stt" && msg.final) {
+      setText(msg.text);
+    }
+  };
+
+  await new Promise(res => sttSocketRef.current!.onopen = res);
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  audioCtxRef.current = new AudioContext({ sampleRate: 16000 });
+
+  const source = audioCtxRef.current.createMediaStreamSource(stream);
+  processorRef.current = audioCtxRef.current.createScriptProcessor(4096, 1, 1);
+
+  processorRef.current.onaudioprocess = (e) => {
+    if (sttSocketRef.current?.readyState === WebSocket.OPEN) {
+      sttSocketRef.current.send(
+        e.inputBuffer.getChannelData(0).buffer
+      );
+    }
+  };
+
+  source.connect(processorRef.current);
+  processorRef.current.connect(audioCtxRef.current.destination);
+}
+
+function stopListening() {
+  processorRef.current?.disconnect();
+  audioCtxRef.current?.close();
+  sttSocketRef.current?.close();
+
+  sttStartedRef.current = false;
+}
+
+
+// async function startSTT() {
+//   const ws = new WebSocket(`wss://p${port}${import.meta.env.VITE_APP_AVATAR}/stt`);
+//   ws.binaryType = "arraybuffer";
+//
+//   ws.onmessage = (e) => {
+//     const msg = JSON.parse(e.data);
+//     if (msg.type === "stt" && msg.final) {
+//       console.log("📝", msg.text);
+//       setText(msg.text);
+//       // acá podés:
+//       // - mostrar subtítulos
+//       // - mandarlo al avatar
+//     }
+//   };
+//
+//   await new Promise(res => ws.onopen = res);
+//
+//   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+//   const audioCtx = new AudioContext({ sampleRate: 16000 });
+//
+//   const source = audioCtx.createMediaStreamSource(stream);
+//   const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+//
+//   processor.onaudioprocess = (e) => {
+//     ws.send(e.inputBuffer.getChannelData(0).buffer);
+//   };
+//
+//   source.connect(processor);
+//   processor.connect(audioCtx.destination);
+//
+//   sttSocketRef.current = ws;
+//   audioCtxRef.current = audioCtx;
+//   processorRef.current = processor;
+// }
+//
+// function stopSTT() {
+//   processorRef.current?.disconnect();
+//   audioCtxRef.current?.close();
+//   sttSocketRef.current?.close();
+//
+//   processorRef.current = null;
+//   audioCtxRef.current = null;
+//   sttSocketRef.current = null;
+// }
+
+
+  // End added
+
+
   // ---------------------------
   // Local media recorder + SpeechRecognition (press-to-talk)
   // ---------------------------
@@ -521,6 +621,23 @@ export default function AvatarStreaming(
 
         {/* Right panel: Chat / TTS */}
         <div className="col-lg-4">
+
+<button
+  onClick={() => {
+    if (!sttStartedRef.current) {
+      startContinuousSTT();
+      sttStartedRef.current = true;
+    }
+  }}
+>
+  🎤 Activar micrófono
+</button>
+
+<button onClick={stopListening}>
+  ⏹️ Parar
+</button>
+<div> {text} </div>
+
           <div className="card">
 
             <div className="card-header">
