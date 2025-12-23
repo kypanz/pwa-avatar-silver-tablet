@@ -215,6 +215,34 @@ export default function AvatarStreaming(
     setConnecting(false);
   };
 
+  // Added by Kyp4nz
+  const sendFromSTTChat = async (text: string) => {
+    if (!text) return;
+
+    // mostrar mensaje del usuario
+    addChatMessage(text, 'user');
+    setChatInput('');
+
+    try {
+      await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          type: 'chat',
+          interrupt: true,
+          sessionid: Number(sessionId)
+        })
+      });
+      // opcional: backend puede enviar respuesta por otro canal (streaming TTS)
+    } catch (err) {
+      console.error('Error enviando /human chat:', err);
+      addChatMessage('Fallo al enviar mensaje.', 'system');
+    }
+  };
+
+  // End added 
+
   // ---------------------------
   // /human (chat) y /human (echo/tts)
   // ---------------------------
@@ -262,7 +290,7 @@ export default function AvatarStreaming(
           sessionid: Number(sessionId)
         })
       });
-      addChatMessage(`朗读请求 enviada: "${text}"`, 'system');
+      addChatMessage(`enviada: "${text}"`, 'system');
       if (textEl) textEl.value = '';
     } catch (err) {
       console.error('Error enviando /human echo:', err);
@@ -322,7 +350,9 @@ const audioCtxRef = useRef<AudioContext | null>(null);
 const processorRef = useRef<ScriptProcessorNode | null>(null);
 const sttStartedRef = useRef(false);
 const [text, setText] = useState("");
+const [statusRecording, setStatusRecording] = useState("Desactivado");
 
+console.log("Text => ", text);
 
 async function startContinuousSTT() {
   sttSocketRef.current = new WebSocket(`wss://p${port}${import.meta.env.VITE_APP_AVATAR}/stt`);
@@ -332,6 +362,8 @@ async function startContinuousSTT() {
     const msg = JSON.parse(e.data);
     if (msg.type === "stt" && msg.final) {
       setText(msg.text);
+      sendFromSTTChat(msg.text);
+      setStatusRecording("Activado");
     }
   };
 
@@ -361,6 +393,7 @@ function stopListening() {
   sttSocketRef.current?.close();
 
   sttStartedRef.current = false;
+  setStatusRecording("Desactivado")
 }
 
 
@@ -544,10 +577,12 @@ function stopListening() {
   };
 
   // Press-to-talk handlers (mouse & touch)
+  // @ts-ignore 
   const handleVoiceStart = (ev?: React.MouseEvent | React.TouchEvent) => {
     ev?.preventDefault();
     startLocalRecordingAndRecognition();
   };
+  // @ts-ignore
   const handleVoiceEnd = (ev?: React.MouseEvent | React.TouchEvent) => {
     ev?.preventDefault();
     stopLocalRecordingAndRecognition();
@@ -622,21 +657,8 @@ function stopListening() {
         {/* Right panel: Chat / TTS */}
         <div className="col-lg-4">
 
-<button
-  onClick={() => {
-    if (!sttStartedRef.current) {
-      startContinuousSTT();
-      sttStartedRef.current = true;
-    }
-  }}
->
-  🎤 Activar micrófono
-</button>
 
-<button onClick={stopListening}>
-  ⏹️ Parar
-</button>
-<div> {text} </div>
+
 
           <div className="card">
 
@@ -653,7 +675,8 @@ function stopListening() {
                   </button>
                 </li>
                             <li className="nav-item" role="presentation">
-                  <button
+  
+                            {/*                  <button
                     className={`nav-link ${activeTab === "tts" ? "bg-white text-blue-500" : "bg-white text-black"}`}
                     type="button"
                     onClick={() => {
@@ -661,6 +684,7 @@ function stopListening() {
                     }}>
                     Modo de lectura en voz alta
                   </button>
+  */}
                 </li>
 
               </ul>
@@ -687,7 +711,24 @@ function stopListening() {
                         </div>
                       </form>
 
-                      <div className="voice-record-btn mt-2"
+                      <button
+  onClick={() => {
+    setStatusRecording("Activado");
+    if (!sttStartedRef.current) {
+      startContinuousSTT();
+      sttStartedRef.current = true;
+    }
+  }}
+>
+  🎤 Activar micrófono
+</button>
+
+<button onClick={stopListening}>
+  ⏹️ Parar
+</button>
+<div> Deteccion de microfono : <span style={{color:(statusRecording == "Desactivado" ? "red" : "green")}}>{statusRecording}</span>  </div>
+
+                      {/*      <div className="voice-record-btn mt-2"
                         onMouseDown={handleVoiceStart}
                         onMouseUp={handleVoiceEnd}
                         onTouchStart={handleVoiceStart}
@@ -698,6 +739,7 @@ function stopListening() {
                         <i className="bi bi-mic-fill"></i>
                       </div>
                       <div className="voice-record-label">Mantén para hablar — suelta para enviar</div>
+                */}
                     </div>
                   </>
                 )}
