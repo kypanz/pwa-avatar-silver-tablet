@@ -216,7 +216,7 @@ useEffect(() => {
     )
   }
 
-
+console.log(currentBrowser);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
 
