@@ -220,7 +220,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
 
-      <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {currentBrowser} </h1>
+      <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {navigator.userAgent.toLowerCase()} </h1>
 
       {/* Estado de conexión */}
       {!statusInit && (
