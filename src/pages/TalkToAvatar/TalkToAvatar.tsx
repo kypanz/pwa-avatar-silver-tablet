@@ -10,6 +10,31 @@ import AvatarStreaming from '../../components/AvatarStreaming/AvatarStreaming'
 
 export default function TalkToAvatar() {
 
+
+const [currentBrowser, setCurrentBrowser] = useState("no detectado");
+const userAgent = navigator.userAgent.toLowerCase();
+
+let browserName = "unknown";
+
+if (userAgent.includes("chrome") && !userAgent.includes("edg") && !userAgent.includes("opr")) {
+  browserName = "chrome";
+} else if (userAgent.includes("samsungbrowser")) {
+  browserName = "samsung";
+} else if (userAgent.includes("firefox")) {
+  browserName = "firefox";
+} else if (userAgent.includes("safari") && !userAgent.includes("chrome")) {
+  browserName = "safari";
+}
+
+useEffect(() => {
+  setCurrentBrowser(browserName);
+}, [])
+
+
+
+
+
+
   const [enabled, setEnabled] = useState(false);
   const [currentDeviceId, setCurrentDeviceId] = useState('');
   const [configurationData, setConfigurationData] = useState();
@@ -194,6 +219,9 @@ export default function TalkToAvatar() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
+
+      <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {currentBrowser} </h1>
+
       {/* Estado de conexión */}
       {!statusInit && (
         <p className="mb-6 text-2xl font-bold">
