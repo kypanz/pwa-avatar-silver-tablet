@@ -267,15 +267,15 @@ console.log(currentBrowser);
           </Button>
         </div>
 
-<div class="flex items-center justify-center my-6 gap-3">
-  <div class="w-16 h-px bg-gray-300"></div>
-  <span class="text-sm text-gray-500">o</span>
-  <div class="w-16 h-px bg-gray-300"></div>
+<div className="flex items-center justify-center my-6 gap-3">
+  <div className="w-16 h-px bg-gray-300"></div>
+  <span className="text-sm text-gray-500">o</span>
+  <div className="w-16 h-px bg-gray-300"></div>
 </div>
 
 
 
-<p class="pb-4"> ¿ Quieres sincronizar con otro avatar ? </p>
+<p className="pb-4"> ¿ Quieres sincronizar con otro avatar ? </p>
  <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-blue-200">
           <input
             className="w-full p-4 mb-6 text-xl rounded bg-white text-blue-900 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-blue-200"
