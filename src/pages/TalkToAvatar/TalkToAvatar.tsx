@@ -220,7 +220,8 @@ console.log(currentBrowser);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
 
-      <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {navigator.userAgent.toLowerCase()} </h1>
+    {/* Para verificar el navegador actual del dispositivo */}
+    { /* <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {navigator.userAgent.toLowerCase()} </h1> */}
 
       {/* Estado de conexión */}
       {!statusInit && (
@@ -253,6 +254,7 @@ console.log(currentBrowser);
 
       {/* Paso 2: Botón "Iniciar" */}
       {enabled && !statusInit && (
+   <>
         <div className="py-8">
           <Button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-8 rounded-full text-2xl shadow-lg"
@@ -264,6 +266,29 @@ console.log(currentBrowser);
             Iniciar
           </Button>
         </div>
+
+<div class="flex items-center justify-center my-6 gap-3">
+  <div class="w-16 h-px bg-gray-300"></div>
+  <span class="text-sm text-gray-500">o</span>
+  <div class="w-16 h-px bg-gray-300"></div>
+</div>
+
+
+
+<p class="pb-4"> ¿ Quieres sincronizar con otro avatar ? </p>
+ <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-blue-200">
+          <input
+            className="w-full p-4 mb-6 text-xl rounded bg-white text-blue-900 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-blue-200"
+            placeholder="Código de conexión"
+            onChange={(e) => setCurrentDeviceId(e.target.value)}
+          />
+          <Button className="w-full text-xl bg-blue-500 hover:bg-blue-600 text-white" onClick={setDeviceId}>
+            Sincronizar
+          </Button>
+        </div>
+
+</>
+
       )}
 
       {/* Paso 3: Chat y video (se muestra solo después de iniciar) */}
