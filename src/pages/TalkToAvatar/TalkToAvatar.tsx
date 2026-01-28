@@ -71,19 +71,22 @@ useEffect(() => {
     avatar_name,
     avatar_model_name,
     avatar_instructions,
-    avatar_voice
+    avatar_voice,
+    device_code
   }:{
     avatar_name : string,
     avatar_model_name : string,
     avatar_instructions : string,
-    avatar_voice : string
+    avatar_voice : string,
+    device_code: string,
   }) => {
     try {
     const payload = {
       model_id: avatar_model_name,
       avatar_name:  avatar_name.split("AVATAR_")[1],
       avatar_instructions: avatar_instructions,
-      avatar_voice: avatar_voice
+      avatar_voice: avatar_voice,
+      device_code: device_code
     }
     const response = await axios.post(endpoints.initModelAvatar, payload, {withCredentials : true});
     if(response.status == 200) {
@@ -114,7 +117,8 @@ useEffect(() => {
           avatar_name : _data.avatar_name,
     avatar_model_name : _data.style_avatar,
     avatar_instructions : _data.avatar_instructions,
-    avatar_voice : _data.avatar_voice
+    avatar_voice : _data.avatar_voice,
+    device_code: device_id
         })
       }
     } catch (error) {
