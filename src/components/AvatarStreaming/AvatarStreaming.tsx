@@ -1,19 +1,18 @@
 // AvatarStreaming.tsx
-import React, { useEffect, useRef, useState } from 'react';
-import './AvatarStreaming.css';
+import React, { useEffect, useRef, useState } from "react";
+import "./AvatarStreaming.css";
 
-type ChatMsg = { sender: string; text: string; type: 'user' | 'system' };
+type ChatMsg = { sender: string; text: string; type: "user" | "system" };
 
-export default function AvatarStreaming(
-  {
-    port,
-    messageToSay,
-    setMessageToSay
-  } : {
-    port: String,
-    messageToSay: String,
-    setMessageToSay: any
-  }) {
+export default function AvatarStreaming({
+  port,
+  messageToSay,
+  setMessageToSay,
+}: {
+  port: String;
+  messageToSay: String;
+  setMessageToSay: any;
+}) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -21,7 +20,7 @@ export default function AvatarStreaming(
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recognitionRef = useRef<any>(null);
-  const lastFinalTranscriptRef = useRef<string>('');
+  const lastFinalTranscriptRef = useRef<string>("");
 
   const [sessionId, setSessionId] = useState<number>(0);
   const [connected, setConnected] = useState(false);
@@ -30,9 +29,13 @@ export default function AvatarStreaming(
   const [activeTab, setActiveTab] = useState<"chat" | "tts">("chat");
 
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
-    { sender: 'Sistema', text: 'Bienvenido, haz clic en "Conectar" para iniciar.', type: 'system' }
+    {
+      sender: "Sistema",
+      text: 'Bienvenido, haz clic en "Conectar" para iniciar.',
+      type: "system",
+    },
   ]);
-  const [chatInput, setChatInput] = useState('');
+  const [chatInput, setChatInput] = useState("");
   // const [videoSize, setVideoSize] = useState<number>(100);
 
   // Grabación local / indicadores
@@ -40,28 +43,28 @@ export default function AvatarStreaming(
   // const [recButtonDisabled, setRecButtonDisabled] = useState(false);
 
   // ---- Helpers ----
-  const addChatMessage = (text: string, type: 'user' | 'system' = 'user') => {
-    const sender = type === 'user' ? 'Tú' : 'Sistema';
+  const addChatMessage = (text: string, type: "user" | "system" = "user") => {
+    const sender = type === "user" ? "Tú" : "Sistema";
     setChatMessages((prev) => [...prev, { sender, text, type }]);
   };
 
-  console.log('message => ', messageToSay, setMessageToSay);
+  console.log("message => ", messageToSay, setMessageToSay);
 
   // Added by Kyp4nz
   // useEffect(() => {
   //   setInterval(async () => {
   //    if(messageToSay != "" && sessionId != 0) {
-  //      await sendScheduledEcho({text : messageToSay}) 
-  //      // await new Promise((resolve, reject) => { 
+  //      await sendScheduledEcho({text : messageToSay})
+  //      // await new Promise((resolve, reject) => {
   //      // try {
   //      //   setTimeout(() => {
   //      //    resolve(true);
   //      //   }, 2000);
   //      // } catch (error) {
   //      //   reject(false);
-  //      // } 
+  //      // }
   //      // });
-  //    } 
+  //    }
   //   }, 20000);
   // }, []);
 
@@ -92,18 +95,21 @@ export default function AvatarStreaming(
     // cleanup on unmount
     return () => {
       if (pcRef.current) pcRef.current.close();
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state !== "inactive"
+      ) {
         mediaRecorderRef.current.stop();
       }
       try {
         if (recognitionRef.current) recognitionRef.current.stop();
-      } catch { }
+      } catch {}
     };
   }, []);
 
   useEffect(() => {
     // auto-scroll chat container if needed
-    const el = document.querySelector('.asr-container');
+    const el = document.querySelector(".asr-container");
     if (el) el.scrollTop = el.scrollHeight;
   }, [chatMessages]);
 
@@ -111,32 +117,35 @@ export default function AvatarStreaming(
   // WebRTC negotiation (tu código original integrado)
   // ---------------------------
   const negotiate = async (pcInstance: RTCPeerConnection) => {
-    pcInstance.addTransceiver('video', { direction: 'recvonly' });
-    pcInstance.addTransceiver('audio', { direction: 'recvonly' });
+    pcInstance.addTransceiver("video", { direction: "recvonly" });
+    pcInstance.addTransceiver("audio", { direction: "recvonly" });
 
     await pcInstance.setLocalDescription(await pcInstance.createOffer());
 
     // wait for ICE gathering complete
     await new Promise<void>((resolve) => {
-      if (pcInstance.iceGatheringState === 'complete') {
+      if (pcInstance.iceGatheringState === "complete") {
         resolve();
       } else {
         const check = () => {
-          if (pcInstance.iceGatheringState === 'complete') {
-            pcInstance.removeEventListener('icegatheringstatechange', check);
+          if (pcInstance.iceGatheringState === "complete") {
+            pcInstance.removeEventListener("icegatheringstatechange", check);
             resolve();
           }
         };
-        pcInstance.addEventListener('icegatheringstatechange', check);
+        pcInstance.addEventListener("icegatheringstatechange", check);
       }
     });
 
     const offer = pcInstance.localDescription!;
-    const response = await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/offer`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sdp: offer.sdp, type: offer.type })
-    });
+    const response = await fetch(
+      `https://p${port}${import.meta.env.VITE_APP_AVATAR}/offer`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sdp: offer.sdp, type: offer.type }),
+      },
+    );
 
     const answer = await response.json();
     // backend returns answer SDP + sessionid
@@ -144,7 +153,10 @@ export default function AvatarStreaming(
       setSessionId(Number(answer.sessionid));
     }
     // set remote description (assume answer has sdp & type)
-    await pcInstance.setRemoteDescription({ type: answer.type, sdp: answer.sdp });
+    await pcInstance.setRemoteDescription({
+      type: answer.type,
+      sdp: answer.sdp,
+    });
     setConnected(true);
     setConnecting(false);
   };
@@ -152,26 +164,26 @@ export default function AvatarStreaming(
   const start = async () => {
     setConnecting(true);
 
- const iceServers: RTCIceServer[] = [
-    // Opcional: STUN público, por si alguna conexión P2P sirve
-    // {
-    //   urls: 'stun:stun.l.google.com:19302',
-    // },
-    // Importante: tu TURN en la VPS
-    {
-      urls: 'turn:18.188.178.197:3478',
-      username: 'avatar',
-      credential: 'avatarpass',
-    },
-  ];
+    const iceServers: RTCIceServer[] = [
+      // Opcional: STUN público, por si alguna conexión P2P sirve
+      // {
+      //   urls: 'stun:stun.l.google.com:19302',
+      // },
+      // Importante: tu TURN en la VPS
+      {
+        urls: "turn:18.188.178.197:3478",
+        username: "avatar",
+        credential: "avatarpass",
+      },
+    ];
 
- // const unified_plan : any = "unified-plan"
- const config: RTCConfiguration = {
-    // sdpSemantics: unified_plan, //'unified-plan' as any,
-    iceServers,
-  };
+    // const unified_plan : any = "unified-plan"
+    const config: RTCConfiguration = {
+      // sdpSemantics: unified_plan, //'unified-plan' as any,
+      iceServers,
+    };
 
-  const pcInstance = new RTCPeerConnection(config);
+    const pcInstance = new RTCPeerConnection(config);
 
     // const config: RTCConfiguration | any = { sdpSemantics: 'unified-plan' };
     // if (useStun) config.iceServers = [{ urls: [''] }];
@@ -179,16 +191,20 @@ export default function AvatarStreaming(
     // const pcInstance = new RTCPeerConnection(config);
 
     pcInstance.ontrack = (evt) => {
-      if (evt.track.kind === 'video' && videoRef.current) {
+      if (evt.track.kind === "video" && videoRef.current) {
         videoRef.current.srcObject = evt.streams[0];
-      } else if (evt.track.kind === 'audio' && audioRef.current) {
+      } else if (evt.track.kind === "audio" && audioRef.current) {
         audioRef.current.srcObject = evt.streams[0];
       }
     };
 
     pcInstance.onconnectionstatechange = () => {
       // opcional: reflejar cambios de estado
-      if (pcInstance.connectionState === 'disconnected' || pcInstance.connectionState === 'failed' || pcInstance.connectionState === 'closed') {
+      if (
+        pcInstance.connectionState === "disconnected" ||
+        pcInstance.connectionState === "failed" ||
+        pcInstance.connectionState === "closed"
+      ) {
         setConnected(false);
       }
     };
@@ -196,9 +212,12 @@ export default function AvatarStreaming(
     pcRef.current = pcInstance;
 
     negotiate(pcInstance).catch((err) => {
-      console.error('Error en negociación:', err);
+      console.error("Error en negociación:", err);
       setConnecting(false);
-      addChatMessage('Error al negociar WebRTC: ' + err.toString(), 'system');
+      addChatMessage(
+        "No fue posible conectar con su avatar. Por favor, vuelva a intentarlo y espere.",
+      );
+      // addChatMessage('Error al negociar WebRTC: ' + err.toString(), 'system');
     });
   };
 
@@ -220,28 +239,28 @@ export default function AvatarStreaming(
     if (!text) return;
 
     // mostrar mensaje del usuario
-    addChatMessage(text, 'user');
-    setChatInput('');
+    addChatMessage(text, "user");
+    setChatInput("");
 
     try {
       await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
-          type: 'chat',
+          type: "chat",
           interrupt: true,
-          sessionid: Number(sessionId)
-        })
+          sessionid: Number(sessionId),
+        }),
       });
       // opcional: backend puede enviar respuesta por otro canal (streaming TTS)
     } catch (err) {
-      console.error('Error enviando /human chat:', err);
-      addChatMessage('Fallo al enviar mensaje.', 'system');
+      console.error("Error enviando /human chat:", err);
+      addChatMessage("Fallo al enviar mensaje.", "system");
     }
   };
 
-  // End added 
+  // End added
 
   // ---------------------------
   // /human (chat) y /human (echo/tts)
@@ -252,49 +271,51 @@ export default function AvatarStreaming(
     if (!text) return;
 
     // mostrar mensaje del usuario
-    addChatMessage(text, 'user');
-    setChatInput('');
+    addChatMessage(text, "user");
+    setChatInput("");
 
     try {
       await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
-          type: 'chat',
+          type: "chat",
           interrupt: true,
-          sessionid: Number(sessionId)
-        })
+          sessionid: Number(sessionId),
+        }),
       });
       // opcional: backend puede enviar respuesta por otro canal (streaming TTS)
     } catch (err) {
-      console.error('Error enviando /human chat:', err);
-      addChatMessage('Fallo al enviar chat al backend.', 'system');
+      console.error("Error enviando /human chat:", err);
+      addChatMessage("Fallo al enviar chat al backend.", "system");
     }
   };
 
   const sendEcho = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const textEl = document.getElementById('tts-text') as HTMLTextAreaElement | null;
-    const text = textEl?.value?.trim() ?? '';
+    const textEl = document.getElementById(
+      "tts-text",
+    ) as HTMLTextAreaElement | null;
+    const text = textEl?.value?.trim() ?? "";
     if (!text) return;
 
     try {
       await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
-          type: 'echo',
+          type: "echo",
           interrupt: true,
-          sessionid: Number(sessionId)
-        })
+          sessionid: Number(sessionId),
+        }),
       });
-      addChatMessage(`enviada: "${text}"`, 'system');
-      if (textEl) textEl.value = '';
+      addChatMessage(`enviada: "${text}"`, "system");
+      if (textEl) textEl.value = "";
     } catch (err) {
-      console.error('Error enviando /human echo:', err);
-      addChatMessage('Fallo al enviar TTS al backend.', 'system');
+      console.error("Error enviando /human echo:", err);
+      addChatMessage("Fallo al enviar TTS al backend.", "system");
     }
   };
 
@@ -303,148 +324,171 @@ export default function AvatarStreaming(
   // ---------------------------
   const startRecordOnServer = async () => {
     try {
-      const resp = await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/record`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'start_record', sessionid: Number(sessionId) })
-      });
+      const resp = await fetch(
+        `https://p${port}${import.meta.env.VITE_APP_AVATAR}/record`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "start_record",
+            sessionid: Number(sessionId),
+          }),
+        },
+      );
       if (resp.ok) {
         // setRecButtonDisabled(true);
-        addChatMessage('Grabación iniciada en servidor.', 'system');
+        addChatMessage("Grabación iniciada en servidor.", "system");
       } else {
-        console.error('start_record failed', resp.status);
-        addChatMessage('No se pudo iniciar la grabación en el servidor.', 'system');
+        console.error("start_record failed", resp.status);
+        addChatMessage(
+          "No se pudo iniciar la grabación en el servidor.",
+          "system",
+        );
       }
     } catch (err) {
       console.error(err);
-      addChatMessage('Error al pedir inicio de grabación al servidor.', 'system');
+      addChatMessage(
+        "Error al pedir inicio de grabación al servidor.",
+        "system",
+      );
     }
   };
 
   const stopRecordOnServer = async () => {
     try {
-      const resp = await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/record`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'end_record', sessionid: Number(sessionId) })
-      });
+      const resp = await fetch(
+        `https://p${port}${import.meta.env.VITE_APP_AVATAR}/record`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "end_record",
+            sessionid: Number(sessionId),
+          }),
+        },
+      );
       if (resp.ok) {
         // setRecButtonDisabled(false);
-        addChatMessage('Grabación detenida en servidor.', 'system');
+        addChatMessage("Grabación detenida en servidor.", "system");
       } else {
-        console.error('end_record failed', resp.status);
-        addChatMessage('No se pudo detener la grabación en el servidor.', 'system');
+        console.error("end_record failed", resp.status);
+        addChatMessage(
+          "No se pudo detener la grabación en el servidor.",
+          "system",
+        );
       }
     } catch (err) {
       console.error(err);
-      addChatMessage('Error al pedir detención de grabación al servidor.', 'system');
-    }
-  };
-
-
-
-// Recording using Whisper | Added by Kyp4nz
-
-const sttSocketRef = useRef<WebSocket | null>(null);
-const audioCtxRef = useRef<AudioContext | null>(null);
-const processorRef = useRef<ScriptProcessorNode | null>(null);
-const sttStartedRef = useRef(false);
-const [text, setText] = useState("");
-const [statusRecording, setStatusRecording] = useState("Desactivado");
-
-console.log("Text => ", text);
-
-async function startContinuousSTT() {
-  sttSocketRef.current = new WebSocket(`wss://p${port}${import.meta.env.VITE_APP_AVATAR}/stt`);
-  sttSocketRef.current.binaryType = "arraybuffer";
-
-  sttSocketRef.current.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    if (msg.type === "stt" && msg.final) {
-      setText(msg.text);
-      sendFromSTTChat(msg.text);
-      setStatusRecording("Activado");
-    }
-  };
-
-  await new Promise(res => sttSocketRef.current!.onopen = res);
-
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  audioCtxRef.current = new AudioContext({ sampleRate: 16000 });
-
-  const source = audioCtxRef.current.createMediaStreamSource(stream);
-  processorRef.current = audioCtxRef.current.createScriptProcessor(4096, 1, 1);
-
-  processorRef.current.onaudioprocess = (e) => {
-    if (sttSocketRef.current?.readyState === WebSocket.OPEN) {
-      sttSocketRef.current.send(
-        e.inputBuffer.getChannelData(0).buffer
+      addChatMessage(
+        "Error al pedir detención de grabación al servidor.",
+        "system",
       );
     }
   };
 
-  source.connect(processorRef.current);
-  processorRef.current.connect(audioCtxRef.current.destination);
-}
+  // Recording using Whisper | Added by Kyp4nz
 
-function stopListening() {
-  processorRef.current?.disconnect();
-  audioCtxRef.current?.close();
-  sttSocketRef.current?.close();
+  const sttSocketRef = useRef<WebSocket | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const sttStartedRef = useRef(false);
+  const [text, setText] = useState("");
+  const [statusRecording, setStatusRecording] = useState("Desactivado");
 
-  sttStartedRef.current = false;
-  setStatusRecording("Desactivado")
-}
+  console.log("Text => ", text);
 
+  async function startContinuousSTT() {
+    sttSocketRef.current = new WebSocket(
+      `wss://p${port}${import.meta.env.VITE_APP_AVATAR}/stt`,
+    );
+    sttSocketRef.current.binaryType = "arraybuffer";
 
-// async function startSTT() {
-//   const ws = new WebSocket(`wss://p${port}${import.meta.env.VITE_APP_AVATAR}/stt`);
-//   ws.binaryType = "arraybuffer";
-//
-//   ws.onmessage = (e) => {
-//     const msg = JSON.parse(e.data);
-//     if (msg.type === "stt" && msg.final) {
-//       console.log("📝", msg.text);
-//       setText(msg.text);
-//       // acá podés:
-//       // - mostrar subtítulos
-//       // - mandarlo al avatar
-//     }
-//   };
-//
-//   await new Promise(res => ws.onopen = res);
-//
-//   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-//   const audioCtx = new AudioContext({ sampleRate: 16000 });
-//
-//   const source = audioCtx.createMediaStreamSource(stream);
-//   const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-//
-//   processor.onaudioprocess = (e) => {
-//     ws.send(e.inputBuffer.getChannelData(0).buffer);
-//   };
-//
-//   source.connect(processor);
-//   processor.connect(audioCtx.destination);
-//
-//   sttSocketRef.current = ws;
-//   audioCtxRef.current = audioCtx;
-//   processorRef.current = processor;
-// }
-//
-// function stopSTT() {
-//   processorRef.current?.disconnect();
-//   audioCtxRef.current?.close();
-//   sttSocketRef.current?.close();
-//
-//   processorRef.current = null;
-//   audioCtxRef.current = null;
-//   sttSocketRef.current = null;
-// }
+    sttSocketRef.current.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === "stt" && msg.final) {
+        setText(msg.text);
+        sendFromSTTChat(msg.text);
+        setStatusRecording("Activado");
+      }
+    };
 
+    await new Promise((res) => (sttSocketRef.current!.onopen = res));
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtxRef.current = new AudioContext({ sampleRate: 16000 });
+
+    const source = audioCtxRef.current.createMediaStreamSource(stream);
+    processorRef.current = audioCtxRef.current.createScriptProcessor(
+      4096,
+      1,
+      1,
+    );
+
+    processorRef.current.onaudioprocess = (e) => {
+      if (sttSocketRef.current?.readyState === WebSocket.OPEN) {
+        sttSocketRef.current.send(e.inputBuffer.getChannelData(0).buffer);
+      }
+    };
+
+    source.connect(processorRef.current);
+    processorRef.current.connect(audioCtxRef.current.destination);
+  }
+
+  function stopListening() {
+    processorRef.current?.disconnect();
+    audioCtxRef.current?.close();
+    sttSocketRef.current?.close();
+
+    sttStartedRef.current = false;
+    setStatusRecording("Desactivado");
+  }
+
+  // async function startSTT() {
+  //   const ws = new WebSocket(`wss://p${port}${import.meta.env.VITE_APP_AVATAR}/stt`);
+  //   ws.binaryType = "arraybuffer";
+  //
+  //   ws.onmessage = (e) => {
+  //     const msg = JSON.parse(e.data);
+  //     if (msg.type === "stt" && msg.final) {
+  //       console.log("📝", msg.text);
+  //       setText(msg.text);
+  //       // acá podés:
+  //       // - mostrar subtítulos
+  //       // - mandarlo al avatar
+  //     }
+  //   };
+  //
+  //   await new Promise(res => ws.onopen = res);
+  //
+  //   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  //   const audioCtx = new AudioContext({ sampleRate: 16000 });
+  //
+  //   const source = audioCtx.createMediaStreamSource(stream);
+  //   const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+  //
+  //   processor.onaudioprocess = (e) => {
+  //     ws.send(e.inputBuffer.getChannelData(0).buffer);
+  //   };
+  //
+  //   source.connect(processor);
+  //   processor.connect(audioCtx.destination);
+  //
+  //   sttSocketRef.current = ws;
+  //   audioCtxRef.current = audioCtx;
+  //   processorRef.current = processor;
+  // }
+  //
+  // function stopSTT() {
+  //   processorRef.current?.disconnect();
+  //   audioCtxRef.current?.close();
+  //   sttSocketRef.current?.close();
+  //
+  //   processorRef.current = null;
+  //   audioCtxRef.current = null;
+  //   sttSocketRef.current = null;
+  // }
 
   // End added
-
 
   // ---------------------------
   // Local media recorder + SpeechRecognition (press-to-talk)
@@ -465,7 +509,7 @@ function stopListening() {
         // stop tracks
         try {
           stream.getTracks().forEach((t) => t.stop());
-        } catch { }
+        } catch {}
       };
 
       mr.start();
@@ -476,18 +520,20 @@ function stopListening() {
       startRecordOnServer();
 
       // SpeechRecognition (if available)
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recog = new SpeechRecognition();
         recog.continuous = true;
         recog.interimResults = true;
-        recog.lang = 'es-ES'; // mantuve el zh-CN como en tu HTML original (cámbialo si quieres)
+        recog.lang = "es-ES"; // mantuve el zh-CN como en tu HTML original (cámbialo si quieres)
         recognitionRef.current = recog;
-        lastFinalTranscriptRef.current = '';
+        lastFinalTranscriptRef.current = "";
 
         recog.onresult = (event: any) => {
-          let interim = '';
-          let final = '';
+          let interim = "";
+          let final = "";
 
           for (let i = event.resultIndex; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
@@ -508,18 +554,21 @@ function stopListening() {
         };
 
         recog.onerror = (err: any) => {
-          console.error('SpeechRecognition error', err);
+          console.error("SpeechRecognition error", err);
         };
 
         try {
           recog.start();
         } catch (err) {
-          console.warn('No se pudo iniciar SpeechRecognition', err);
+          console.warn("No se pudo iniciar SpeechRecognition", err);
         }
       }
     } catch (err) {
-      console.error('No se pudo acceder al micrófono', err);
-      addChatMessage('No se pudo acceder al micrófono. Verifica permisos.', 'system');
+      console.error("No se pudo acceder al micrófono", err);
+      addChatMessage(
+        "No se pudo acceder al micrófono. Verifica permisos.",
+        "system",
+      );
     }
   };
 
@@ -528,11 +577,14 @@ function stopListening() {
 
     // stop local media recorder
     try {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state !== "inactive"
+      ) {
         mediaRecorderRef.current.stop();
       }
     } catch (err) {
-      console.warn('Error al detener MediaRecorder', err);
+      console.warn("Error al detener MediaRecorder", err);
     }
 
     // stop recognition
@@ -540,7 +592,7 @@ function stopListening() {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-    } catch (err) { }
+    } catch (err) {}
 
     setIsRecording(false);
 
@@ -549,35 +601,44 @@ function stopListening() {
 
     // small delay to let recognition finalize
     setTimeout(async () => {
-      const recognized = (lastFinalTranscriptRef.current && lastFinalTranscriptRef.current.trim()) || chatInput.trim();
+      const recognized =
+        (lastFinalTranscriptRef.current &&
+          lastFinalTranscriptRef.current.trim()) ||
+        chatInput.trim();
       if (recognized) {
         // enviar recognized text to /human
         try {
-          await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: recognized,
-              type: 'chat',
-              interrupt: true,
-              sessionid: Number(sessionId)
-            })
-          });
-          addChatMessage(recognized, 'user');
-          setChatInput('');
-          lastFinalTranscriptRef.current = '';
+          await fetch(
+            `https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                text: recognized,
+                type: "chat",
+                interrupt: true,
+                sessionid: Number(sessionId),
+              }),
+            },
+          );
+          addChatMessage(recognized, "user");
+          setChatInput("");
+          lastFinalTranscriptRef.current = "";
         } catch (err) {
-          console.error('Error enviando recognized text', err);
-          addChatMessage('Error enviando texto reconocido al servidor.', 'system');
+          console.error("Error enviando recognized text", err);
+          addChatMessage(
+            "Error enviando texto reconocido al servidor.",
+            "system",
+          );
         }
       } else {
-        addChatMessage('No se detectó texto en la grabación.', 'system');
+        addChatMessage("No se detectó texto en la grabación.", "system");
       }
     }, 400);
   };
 
   // Press-to-talk handlers (mouse & touch)
-  // @ts-ignore 
+  // @ts-ignore
   const handleVoiceStart = (ev?: React.MouseEvent | React.TouchEvent) => {
     ev?.preventDefault();
     startLocalRecordingAndRecognition();
@@ -591,17 +652,27 @@ function stopListening() {
   return (
     <div className="dashboard-container">
       {/*<h1 className="text-center mb-4"> Prueba el avatar </h1>*/}
-
       <div className="row">
         <div className="col-lg-8">
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
               <div>
                 <span
-                  className={`status-indicator ${connected ? 'status-connected' : connecting ? 'status-connecting' : 'status-disconnected'
-                    }`}
+                  className={`status-indicator ${
+                    connected
+                      ? "status-connected"
+                      : connecting
+                        ? "status-connecting"
+                        : "status-disconnected"
+                  }`}
                 ></span>
-                <span>{connected ? 'Conectado' : connecting ? 'Conectando...' : 'Desconectado'}</span>
+                <span>
+                  {connected
+                    ? "Conectado"
+                    : connecting
+                      ? "Conectando..."
+                      : "Desconectado"}
+                </span>
               </div>
               {/*
 <div>
@@ -614,10 +685,18 @@ function stopListening() {
 
             <div className="card-body p-0">
               <div className="video-container">
-                <video ref={videoRef} autoPlay playsInline style={{width : "400px"}}></video>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  style={{ width: "400px" }}
+                ></video>
                 <audio ref={audioRef} autoPlay></audio>
 
-                <div className={`recording-indicator ${isRecording ? 'active' : ''}`} style={{ display: isRecording ? 'flex' : 'none' }}>
+                <div
+                  className={`recording-indicator ${isRecording ? "active" : ""}`}
+                  style={{ display: isRecording ? "flex" : "none" }}
+                >
                   <div className="blink"></div>
                   <span>Grabando</span>
                 </div>
@@ -656,12 +735,7 @@ function stopListening() {
 
         {/* Right panel: Chat / TTS */}
         <div className="col-lg-4">
-
-
-
-
           <div className="card">
-
             <div className="card-header">
               <ul className="nav nav-tabs card-header-tabs" role="tablist">
                 <li className="nav-item" role="presentation">
@@ -670,13 +744,13 @@ function stopListening() {
                     type="button"
                     onClick={() => {
                       setActiveTab("chat");
-                    }}>
+                    }}
+                  >
                     Modo conversación
                   </button>
                 </li>
-                            <li className="nav-item" role="presentation">
-  
-                            {/*                  <button
+                <li className="nav-item" role="presentation">
+                  {/*                  <button
                     className={`nav-link ${activeTab === "tts" ? "bg-white text-blue-500" : "bg-white text-black"}`}
                     type="button"
                     onClick={() => {
@@ -686,7 +760,6 @@ function stopListening() {
                   </button>
   */}
                 </li>
-
               </ul>
             </div>
 
@@ -698,7 +771,10 @@ function stopListening() {
                     <div className="tab-pane fade show active">
                       <div className="asr-container mb-3">
                         {chatMessages.map((m, i) => (
-                          <div key={i} className={`asr-text ${m.type === 'user' ? 'user-message' : 'system-message'}`}>
+                          <div
+                            key={i}
+                            className={`asr-text ${m.type === "user" ? "user-message" : "system-message"}`}
+                          >
                             {m.sender}: {m.text}
                           </div>
                         ))}
@@ -706,27 +782,47 @@ function stopListening() {
 
                       <form id="chat-form" onSubmit={sendChat}>
                         <div className="input-group mb-3">
-                          <textarea className="form-control" id="chat-message" rows={3} value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Ingrese texto..." />
-                          <button className="btn btn-primary" type="submit"><i className="bi bi-send"></i> Enviar</button>
+                          <textarea
+                            className="form-control"
+                            id="chat-message"
+                            rows={3}
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            placeholder="Ingrese texto..."
+                          />
+                          <button className="btn btn-primary" type="submit">
+                            <i className="bi bi-send"></i> Enviar
+                          </button>
                         </div>
                       </form>
 
                       <button
-  onClick={() => {
-    setStatusRecording("Activado");
-    if (!sttStartedRef.current) {
-      startContinuousSTT();
-      sttStartedRef.current = true;
-    }
-  }}
->
-  🎤 Activar micrófono
-</button>
+                        onClick={() => {
+                          setStatusRecording("Activado");
+                          if (!sttStartedRef.current) {
+                            startContinuousSTT();
+                            sttStartedRef.current = true;
+                          }
+                        }}
+                      >
+                        🎤 Activar micrófono
+                      </button>
 
-<button onClick={stopListening}>
-  ⏹️ Parar
-</button>
-<div> Deteccion de microfono : <span style={{color:(statusRecording == "Desactivado" ? "red" : "green")}}>{statusRecording}</span>  </div>
+                      <button onClick={stopListening}>⏹️ Parar</button>
+                      <div>
+                        {" "}
+                        Deteccion de microfono :{" "}
+                        <span
+                          style={{
+                            color:
+                              statusRecording == "Desactivado"
+                                ? "red"
+                                : "green",
+                          }}
+                        >
+                          {statusRecording}
+                        </span>{" "}
+                      </div>
 
                       {/*      <div className="voice-record-btn mt-2"
                         onMouseDown={handleVoiceStart}
@@ -750,10 +846,19 @@ function stopListening() {
                     <div className="tab-pane fade show active mt-3">
                       <form id="echo-form" onSubmit={sendEcho}>
                         <div className="mb-3">
-                          <label htmlFor="tts-text" className="form-label">Texto a leer</label>
-                          <textarea id="tts-text" className="form-control" rows={6} placeholder="Texto para TTS..."></textarea>
+                          <label htmlFor="tts-text" className="form-label">
+                            Texto a leer
+                          </label>
+                          <textarea
+                            id="tts-text"
+                            className="form-control"
+                            rows={6}
+                            placeholder="Texto para TTS..."
+                          ></textarea>
                         </div>
-                        <button type="submit" className="btn btn-primary w-100"><i className="bi bi-volume-up"></i> Leer texto</button>
+                        <button type="submit" className="btn btn-primary w-100">
+                          <i className="bi bi-volume-up"></i> Leer texto
+                        </button>
                       </form>
                     </div>
                   </>
@@ -762,12 +867,10 @@ function stopListening() {
             </div>
           </div>
         </div>
-      </div> {/* row */}
-
+      </div>{" "}
+      {/* row */}
       {/* Hidden session id for compatibility */}
       <input type="hidden" id="sessionid" value={sessionId} />
     </div>
   );
 }
-
-
