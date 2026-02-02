@@ -419,7 +419,7 @@ export default function AvatarStreaming({
 
     const source = audioCtxRef.current.createMediaStreamSource(stream);
     processorRef.current = audioCtxRef.current.createScriptProcessor(
-      4096,
+      2048,
       1,
       1,
     );
