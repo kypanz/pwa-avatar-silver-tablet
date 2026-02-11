@@ -1,56 +1,51 @@
-import { useEffect, useState } from 'react'
-// import Conversation from '../../components/Conversation/Conversation'
-import { endpoints } from '../../utils/endpoints/endpoints';
-import axios from 'axios';
-import { Button } from 'keep-react';
-// import SpeechAvatar from '../../components/SpeechAvatar/SpeechAvatar'
-// import Avatar2DComponent from '../../components/Avatar2DComponent/Avatar2DComponent';
-// import TempChatbot2 from '../../components/TempChatbot2/TempChatbot2';
-import AvatarStreaming from '../../components/AvatarStreaming/AvatarStreaming'
+import { useEffect, useState } from "react";
+
+import { endpoints } from "../../utils/endpoints/endpoints";
+import axios from "axios";
+import { Button } from "keep-react";
+
+import AvatarStreaming from "../../components/AvatarStreaming/AvatarStreaming";
 
 export default function TalkToAvatar() {
+  const [currentBrowser, setCurrentBrowser] = useState("no detectado");
+  const userAgent = navigator.userAgent.toLowerCase();
 
+  let browserName = "unknown";
 
-const [currentBrowser, setCurrentBrowser] = useState("no detectado");
-const userAgent = navigator.userAgent.toLowerCase();
+  if (
+    userAgent.includes("chrome") &&
+    !userAgent.includes("edg") &&
+    !userAgent.includes("opr")
+  ) {
+    browserName = "chrome";
+  } else if (userAgent.includes("samsungbrowser")) {
+    browserName = "samsung";
+  } else if (userAgent.includes("firefox")) {
+    browserName = "firefox";
+  } else if (userAgent.includes("safari") && !userAgent.includes("chrome")) {
+    browserName = "safari";
+  }
 
-let browserName = "unknown";
-
-if (userAgent.includes("chrome") && !userAgent.includes("edg") && !userAgent.includes("opr")) {
-  browserName = "chrome";
-} else if (userAgent.includes("samsungbrowser")) {
-  browserName = "samsung";
-} else if (userAgent.includes("firefox")) {
-  browserName = "firefox";
-} else if (userAgent.includes("safari") && !userAgent.includes("chrome")) {
-  browserName = "safari";
-}
-
-useEffect(() => {
-  setCurrentBrowser(browserName);
-}, [])
-
-
-
-
-
+  useEffect(() => {
+    setCurrentBrowser(browserName);
+  }, []);
 
   const [enabled, setEnabled] = useState(false);
-  const [currentDeviceId, setCurrentDeviceId] = useState('');
+  const [currentDeviceId, setCurrentDeviceId] = useState("");
   const [configurationData, setConfigurationData] = useState();
   const [statusInit, setStatusInit] = useState(false);
 
-  // Check current tablet configuration 
+  // Check current tablet configuration
   const checkDevice = () => {
     try {
-      const check_id = localStorage.getItem('mayiq-device-id');
+      const check_id = localStorage.getItem("mayiq-device-id");
       if (check_id) {
         setEnabled(true);
       }
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   useEffect(() => {
     checkDevice();
@@ -59,12 +54,12 @@ useEffect(() => {
   // Current device id handler
   const changeStorageDeviceId = () => {
     try {
-      localStorage.setItem('mayiq-device-id', currentDeviceId);
+      localStorage.setItem("mayiq-device-id", currentDeviceId);
       setEnabled(true);
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   const [portModelAvatar, setPortModelAvatar] = useState("");
   const syncModel = async ({
@@ -72,98 +67,109 @@ useEffect(() => {
     avatar_model_name,
     avatar_instructions,
     avatar_voice,
-    device_code
-  }:{
-    avatar_name : string,
-    avatar_model_name : string,
-    avatar_instructions : string,
-    avatar_voice : string,
-    device_code: string,
+    device_code,
+  }: {
+    avatar_name: string;
+    avatar_model_name: string;
+    avatar_instructions: string;
+    avatar_voice: string;
+    device_code: string;
   }) => {
     try {
-    const payload = {
-      model_id: avatar_model_name,
-      avatar_name:  avatar_name.split("AVATAR_")[1],
-      avatar_instructions: avatar_instructions,
-      avatar_voice: avatar_voice,
-      device_code: device_code
-    }
-    const response = await axios.post(endpoints.initModelAvatar, payload, {withCredentials : true});
-    if(response.status == 200) {
-      setPortModelAvatar(response.data.port)
-    }
-    console.log("response syncModel => ", response);
+      const payload = {
+        model_id: avatar_model_name,
+        avatar_name: avatar_name.split("AVATAR_")[1],
+        avatar_instructions: avatar_instructions,
+        avatar_voice: avatar_voice,
+        device_code: device_code,
+      };
+      const response = await axios.post(endpoints.initModelAvatar, payload, {
+        withCredentials: true,
+      });
+      if (response.status == 200) {
+        setPortModelAvatar(response.data.port);
+      }
+      console.log("response syncModel => ", response);
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
-
-  // Request to get the device id 
+  // Request to get the device id
   const getDeviceConfig = async ({ device_id }: { device_id: string }) => {
     try {
-      if (!device_id) return
+      if (!device_id) return;
       const payload = {
-        device_id: device_id
-      }
-      const response = await axios.post(endpoints.getDeviceConfigurations, payload);
+        device_id: device_id,
+      };
+      const response = await axios.post(
+        endpoints.getDeviceConfigurations,
+        payload,
+      );
       if (response.status == 200) {
         setConfigurationData(response.data.message);
-        localStorage.setItem('user_id', response.data.message.user_id);
+        localStorage.setItem("user_id", response.data.message.user_id);
         setEnabled(true);
         setStatusInit(true);
         const _data = response.data.message;
         await syncModel({
-          avatar_name : _data.avatar_name,
-    avatar_model_name : _data.style_avatar,
-    avatar_instructions : _data.avatar_instructions,
-    avatar_voice : _data.avatar_voice,
-    device_code: device_id
-        })
+          avatar_name: _data.avatar_name,
+          avatar_model_name: _data.style_avatar,
+          avatar_instructions: _data.avatar_instructions,
+          avatar_voice: _data.avatar_voice,
+          device_code: device_id,
+        });
       }
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   // First Time Connection to get the device id
   const setDeviceId = async () => {
     try {
-      if (!currentDeviceId) return alert('Debes ingresar el codigo de sincronizacion');
+      if (!currentDeviceId)
+        return alert("Debes ingresar el codigo de sincronizacion");
       const payload = {
-        device_id: currentDeviceId
-      }
-      const response = await axios.post(endpoints.getDeviceConfigurations, payload);
+        device_id: currentDeviceId,
+      };
+      const response = await axios.post(
+        endpoints.getDeviceConfigurations,
+        payload,
+      );
       if (response.status == 200) {
-        alert('Conexion realizada correctamente');
+        alert("Conexion realizada correctamente");
         setConfigurationData(response.data.message);
-        localStorage.setItem('user_id', response.data.message.user_id);
+        localStorage.setItem("user_id", response.data.message.user_id);
         changeStorageDeviceId();
-        console.log('Datos de configuracion obtenida => ', response.data.message);
+        console.log(
+          "Datos de configuracion obtenida => ",
+          response.data.message,
+        );
       }
     } catch (error) {
       console.error(error);
-      alert('Problema al configurar el dispositivo')
+      alert("Problema al configurar el dispositivo");
     }
-  }
+  };
 
   // const [globalCurrentText, setGlobalCurrentText] = useState('');
 
-
-
-    const [isGameActive, setIsGameActive] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(false);
   const getStatusGame = async () => {
     try {
-      const response = await axios.get(`https://p${portModelAvatar}${import.meta.env.VITE_APP_AVATAR}/game/status`);
-      if(response.status == 200) {
-        const game_status = (response.data.status == "active") ? true : false;
+      const response = await axios.get(
+        `https://p${portModelAvatar}${import.meta.env.VITE_APP_AVATAR}/game/status`,
+      );
+      if (response.status == 200) {
+        const game_status = response.data.status == "active" ? true : false;
         console.log("estado del juego : ", game_status);
         setIsGameActive(game_status);
       }
     } catch (error) {
       console.error("Error on get status game => ", error);
     }
-  }
+  };
 
   useEffect(() => {
     // llamada inicial
@@ -182,26 +188,34 @@ useEffect(() => {
   const [messageToSay, setMessageToSay] = useState("");
   const checkScheduledMessages = async () => {
     try {
-      const device_id = localStorage.getItem('mayiq-device-id');
+      const device_id = localStorage.getItem("mayiq-device-id");
       if (device_id) {
         const payload = { device_id: device_id };
-        const response = await axios.post(endpoints.getTelegramMessages, payload);
+        const response = await axios.post(
+          endpoints.getTelegramMessages,
+          payload,
+        );
         if (response.status == 200) {
           if (response.data.message == null) {
-            return console.log('No hay tareas programadas por ahora.');
-          } 
+            return console.log("No hay tareas programadas por ahora.");
+          }
           if (response.data.message) {
-            const content_message = response.data.message.message;  
-            const msg = '[ Recordatorio ] : ' + content_message;
-            console.log('recoo => ', msg);
-            setMessageToSay("Tienes un recordatorio, recuerda que " + content_message); 
+            const content_message = response.data.message.message;
+            const msg = "[ Recordatorio ] : " + content_message;
+            console.log("recoo => ", msg);
+            setMessageToSay(
+              "Tienes un recordatorio, recuerda que " + content_message,
+            );
           }
         }
       }
     } catch (error) {
-      console.error('Error on get telegram messages for this tablet => ', error);
+      console.error(
+        "Error on get telegram messages for this tablet => ",
+        error,
+      );
     }
-  }
+  };
 
   useEffect(() => {
     setInterval(() => {
@@ -212,34 +226,50 @@ useEffect(() => {
   // End added
 
   const RenderGame = () => {
-    return(
+    return (
       <>
-      {/* @ts-ignore */}
-      <iframe src="https://h5p.org/h5p/embed/707" width="1090" height="1294" frameborder="0" allowfullscreen="allowfullscreen" allow="geolocation *; microphone *; camera *; midi *; encrypted-media *" title="Memory Game"></iframe><script src="https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js" charset="UTF-8"></script>
+        {/* @ts-ignore */}
+        <iframe
+          src="https://h5p.org/h5p/embed/707"
+          width="1090"
+          height="1294"
+          frameBorder="0"
+          allowFullScreen
+          allow="geolocation *; microphone *; camera *; midi *; encrypted-media *"
+          title="Memory Game"
+        ></iframe>
+        {/* @ts-ignore */}
+        <script
+          src="https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
+          charSet="UTF-8"
+        ></script>
       </>
-    )
-  }
+    );
+  };
 
-console.log(currentBrowser);
+  console.log(currentBrowser);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
-
-    {/* Para verificar el navegador actual del dispositivo */}
-    { /* <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {navigator.userAgent.toLowerCase()} </h1> */}
+      {/* Para verificar el navegador actual del dispositivo */}
+      {/* <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {navigator.userAgent.toLowerCase()} </h1> */}
 
       {/* Estado de conexión */}
       {!statusInit && (
         <p className="mb-6 text-2xl font-bold">
           Estado de conexión:
-          <span className={enabled ? 'text-green-500' : 'text-red-500'}>
-            {enabled ? ' Dispositivo sincronizado' : ' Dispositivo no sincronizado'}
+          <span className={enabled ? "text-green-500" : "text-red-500"}>
+            {enabled
+              ? " Dispositivo sincronizado"
+              : " Dispositivo no sincronizado"}
           </span>
         </p>
       )}
 
       {/* Título principal */}
       {!statusInit && (
-        <h1 className="text-5xl font-bold mb-8 text-center text-blue-900">Habla con tu avatar</h1>
+        <h1 className="text-5xl font-bold mb-8 text-center text-blue-900">
+          Habla con tu avatar
+        </h1>
       )}
 
       {/* Paso 1: Campo de entrada y botón "Sincronizar" */}
@@ -250,7 +280,10 @@ console.log(currentBrowser);
             placeholder="Código de conexión"
             onChange={(e) => setCurrentDeviceId(e.target.value)}
           />
-          <Button className="w-full text-xl bg-blue-500 hover:bg-blue-600 text-white" onClick={setDeviceId}>
+          <Button
+            className="w-full text-xl bg-blue-500 hover:bg-blue-600 text-white"
+            onClick={setDeviceId}
+          >
             Sincronizar
           </Button>
         </div>
@@ -258,65 +291,57 @@ console.log(currentBrowser);
 
       {/* Paso 2: Botón "Iniciar" */}
       {enabled && !statusInit && (
-   <>
-        <div className="py-8">
-          <Button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-8 rounded-full text-2xl shadow-lg"
-            onClick={() => {
-              const device_id = localStorage.getItem('mayiq-device-id');
-              getDeviceConfig({ device_id: (device_id as string) });
-            }}
-          >
-            Iniciar
-          </Button>
-        </div>
+        <>
+          <div className="py-8">
+            <Button
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-8 rounded-full text-2xl shadow-lg"
+              onClick={() => {
+                const device_id = localStorage.getItem("mayiq-device-id");
+                getDeviceConfig({ device_id: device_id as string });
+              }}
+            >
+              Iniciar
+            </Button>
+          </div>
 
-<div className="flex items-center justify-center my-6 gap-3">
-  <div className="w-16 h-px bg-gray-300"></div>
-  <span className="text-sm text-gray-500">o</span>
-  <div className="w-16 h-px bg-gray-300"></div>
-</div>
+          <div className="flex items-center justify-center my-6 gap-3">
+            <div className="w-16 h-px bg-gray-300"></div>
+            <span className="text-sm text-gray-500">o</span>
+            <div className="w-16 h-px bg-gray-300"></div>
+          </div>
 
-
-
-<p className="pb-4"> ¿ Quieres sincronizar con otro avatar ? </p>
- <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-blue-200">
-          <input
-            className="w-full p-4 mb-6 text-xl rounded bg-white text-blue-900 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-blue-200"
-            placeholder="Código de conexión"
-            onChange={(e) => setCurrentDeviceId(e.target.value)}
-          />
-          <Button className="w-full text-xl bg-blue-500 hover:bg-blue-600 text-white" onClick={setDeviceId}>
-            Sincronizar
-          </Button>
-        </div>
-
-</>
-
+          <p className="pb-4"> ¿ Quieres sincronizar con otro avatar ? </p>
+          <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-blue-200">
+            <input
+              className="w-full p-4 mb-6 text-xl rounded bg-white text-blue-900 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-blue-200"
+              placeholder="Código de conexión"
+              onChange={(e) => setCurrentDeviceId(e.target.value)}
+            />
+            <Button
+              className="w-full text-xl bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={setDeviceId}
+            >
+              Sincronizar
+            </Button>
+          </div>
+        </>
       )}
 
       {/* Paso 3: Chat y video (se muestra solo después de iniciar) */}
       {statusInit && (
         <div className="w-full h-full">
-
           {/* Conversation ocupa toda la pantalla */}
-          {(configurationData && portModelAvatar ) && (
+          {configurationData && portModelAvatar && (
             <>
-            {(isGameActive) ? <RenderGame /> : null}
-            <AvatarStreaming port={portModelAvatar} messageToSay={messageToSay} setMessageToSay={setMessageToSay}/> 
-            {/*<Avatar2DComponent />*/}
+              {isGameActive ? <RenderGame /> : null}
+              <AvatarStreaming
+                port={portModelAvatar}
+                messageToSay={messageToSay}
+                setMessageToSay={setMessageToSay}
+              />
+              {/*<Avatar2DComponent />*/}
             </>
           )}
-
-          {/* Mostrar SpeechAvatar y TempChatbot2 para el envio de mensajes ( para compartir funcionalidades ) */}
-          {/*
-          <div className="fixed bottom-8 left-4">
-            <SpeechAvatar setGlobalCurrentText={setGlobalCurrentText} />
-          </div>
-          <div className="fixed bottom-8 right-4">
-            <TempChatbot2 globalCurrentText={globalCurrentText} />
-          </div>
-      */}
         </div>
       )}
     </div>
