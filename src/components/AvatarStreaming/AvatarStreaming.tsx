@@ -27,6 +27,7 @@ export default function AvatarStreaming({
   const [connecting, setConnecting] = useState(false);
   // const [useStun] = useState(false);
   const [activeTab, setActiveTab] = useState<"chat" | "tts">("chat");
+  const assistantWsRef = useRef<WebSocket | null>(null);
 
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
     {
@@ -49,6 +50,48 @@ export default function AvatarStreaming({
   };
 
   console.log("message => ", messageToSay, setMessageToSay);
+
+  useEffect(() => {
+    if (!sessionId || sessionId === 0) return;
+
+    const ws = new WebSocket(
+      `wss://p${port}${import.meta.env.VITE_APP_AVATAR}/assistant_text?sessionid=${sessionId}`,
+    );
+
+    console.log(
+      `La session quedo => wss://p${port}${import.meta.env.VITE_APP_AVATAR}/assistant_text?sessionid=${sessionId}`,
+    );
+
+    ws.onopen = () => {
+      console.log("📝 Assistant text WS conectado");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.text) {
+          addChatMessage(data.text, "system");
+        }
+      } catch (err) {
+        console.error("Error parseando assistant_text:", err);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.error("Assistant text WS error", err);
+    };
+
+    ws.onclose = () => {
+      console.log("🧹 Assistant text WS cerrado");
+    };
+
+    assistantWsRef.current = ws;
+
+    return () => {
+      ws.close();
+      assistantWsRef.current = null;
+    };
+  }, [sessionId]);
 
   // Added by Kyp4nz
   // useEffect(() => {
