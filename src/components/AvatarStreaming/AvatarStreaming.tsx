@@ -825,6 +825,7 @@ export default function AvatarStreaming({
                           <div
                             key={i}
                             className={`asr-text ${m.type === "user" ? "user-message" : "system-message"}`}
+                            style={{ fontSize: "18px" }}
                           >
                             {m.sender}: {m.text}
                           </div>
