@@ -31,7 +31,7 @@ export default function AvatarStreaming({
 
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
     {
-      sender: "Sistema",
+      sender: "Avatar",
       text: 'Bienvenido, haz clic en "Conectar" para iniciar.',
       type: "system",
     },
@@ -45,7 +45,7 @@ export default function AvatarStreaming({
 
   // ---- Helpers ----
   const addChatMessage = (text: string, type: "user" | "system" = "user") => {
-    const sender = type === "user" ? "Tú" : "Sistema";
+    const sender = type === "user" ? "Tú" : "Avatar";
     setChatMessages((prev) => [...prev, { sender, text, type }]);
   };
 
