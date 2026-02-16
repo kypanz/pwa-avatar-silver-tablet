@@ -150,10 +150,15 @@ export default function AvatarStreaming({
     };
   }, []);
 
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
-    // auto-scroll chat container if needed
-    const el = document.querySelector(".asr-container");
-    if (el) el.scrollTop = el.scrollHeight;
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth", // podés poner "auto" si no querés animación
+      });
+    }
   }, [chatMessages]);
 
   // ---------------------------
@@ -812,7 +817,10 @@ export default function AvatarStreaming({
                 {activeTab === "chat" && (
                   <>
                     <div className="tab-pane fade show active">
-                      <div className="asr-container mb-3">
+                      <div
+                        className="asr-container mb-3"
+                        ref={chatContainerRef}
+                      >
                         {chatMessages.map((m, i) => (
                           <div
                             key={i}
@@ -831,6 +839,7 @@ export default function AvatarStreaming({
                             rows={3}
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
+                            style={{ fontSize: "18px" }}
                             placeholder="Ingrese texto..."
                           />
                           <button className="btn btn-primary" type="submit">
