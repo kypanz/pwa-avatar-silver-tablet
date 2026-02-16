@@ -818,8 +818,8 @@ export default function AvatarStreaming({
                   <>
                     <div className="tab-pane fade show active">
                       <div
-                        className="asr-container mb-3"
                         ref={chatContainerRef}
+                        className="mb-3 max-h-[320px] overflow-y-auto rounded-md bg-gray-50 p-3 scroll-smooth"
                       >
                         {chatMessages.map((m, i) => (
                           <div
