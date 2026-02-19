@@ -110,7 +110,7 @@ export default function TalkToAvatar() {
         setConfigurationData(response.data.message);
         localStorage.setItem("user_id", response.data.message.user_id);
         setEnabled(true);
-        setStatusInit(true);
+        // setStatusInit(true); // This is enabled to render the Avatar section
         const _data = response.data.message;
         await syncModel({
           avatar_name: _data.avatar_name,
@@ -155,6 +155,9 @@ export default function TalkToAvatar() {
 
   // const [globalCurrentText, setGlobalCurrentText] = useState('');
 
+  let isShowed = false;
+  const [isLoading, setIsLoading] = useState(false);
+
   const [isGameActive, setIsGameActive] = useState(false);
   const getStatusGame = async () => {
     try {
@@ -165,6 +168,10 @@ export default function TalkToAvatar() {
         const game_status = response.data.status == "active" ? true : false;
         console.log("estado del juego : ", game_status);
         setIsGameActive(game_status);
+        if (isShowed == false) {
+          setStatusInit(true);
+          isShowed = true;
+        }
       }
     } catch (error) {
       console.error("Error on get status game => ", error);
@@ -296,11 +303,13 @@ export default function TalkToAvatar() {
             <Button
               className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-8 rounded-full text-2xl shadow-lg"
               onClick={() => {
+                setIsLoading(true);
                 const device_id = localStorage.getItem("mayiq-device-id");
                 getDeviceConfig({ device_id: device_id as string });
               }}
+              disabled={isLoading}
             >
-              Iniciar
+              {isLoading ? "Iniciando por favor espere ..." : "Iniciar"}
             </Button>
           </div>
 
