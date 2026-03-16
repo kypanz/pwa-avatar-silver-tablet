@@ -166,7 +166,7 @@ export default function TalkToAvatar() {
       );
       if (response.status == 200) {
         const game_status = response.data.status == "active" ? true : false;
-        console.log("estado del juego : ", game_status);
+        // console.log("estado del juego : ", game_status);
         setIsGameActive(game_status);
         if (isShowed == false) {
           setStatusInit(true);
@@ -204,7 +204,8 @@ export default function TalkToAvatar() {
         );
         if (response.status == 200) {
           if (response.data.message == null) {
-            return console.log("No hay tareas programadas por ahora.");
+            // console.log("No hay tareas programadas por ahora.");
+            return;
           }
           if (response.data.message) {
             const content_message = response.data.message.message;

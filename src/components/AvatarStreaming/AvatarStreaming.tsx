@@ -52,7 +52,9 @@ export default function AvatarStreaming({
     setChatMessages((prev) => [...prev, { sender, text, type }]);
   };
 
-  console.log("message => ", messageToSay, setMessageToSay);
+  if (import.meta.env.DEV) {
+    console.log("message => ", messageToSay, setMessageToSay);
+  }
 
   useEffect(() => {
     if (!sessionId || sessionId === 0) return;
@@ -455,7 +457,9 @@ export default function AvatarStreaming({
   const [text, setText] = useState("");
   const [statusRecording, setStatusRecording] = useState("Desactivado");
 
-  console.log("Text => ", text);
+  if (import.meta.env.DEV) {
+    console.log("Text => ", text);
+  }
 
   async function startContinuousSTT() {
     sttSocketRef.current = new WebSocket(
