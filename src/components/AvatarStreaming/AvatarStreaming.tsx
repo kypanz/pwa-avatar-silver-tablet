@@ -29,6 +29,9 @@ export default function AvatarStreaming({
   const [activeTab, setActiveTab] = useState<"chat" | "tts">("chat");
   const assistantWsRef = useRef<WebSocket | null>(null);
 
+  // Para medir tiempos
+  const requestStartTimeRef = useRef<number | null>(null);
+
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
     {
       sender: "Avatar",
@@ -70,6 +73,13 @@ export default function AvatarStreaming({
       try {
         const data = JSON.parse(event.data);
         if (data.text) {
+          if (requestStartTimeRef.current) {
+            const latency =
+              (performance.now() - requestStartTimeRef.current) / 1000;
+
+            console.log("⏱ Tiempo de respuesta:", latency, "segundos");
+          }
+
           addChatMessage(data.text, "system");
         }
       } catch (err) {
@@ -321,6 +331,8 @@ export default function AvatarStreaming({
     // mostrar mensaje del usuario
     addChatMessage(text, "user");
     setChatInput("");
+
+    requestStartTimeRef.current = performance.now();
 
     try {
       await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
