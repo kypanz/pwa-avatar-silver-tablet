@@ -470,6 +470,7 @@ export default function AvatarStreaming({
     sttSocketRef.current.onmessage = (e) => {
       const msg = JSON.parse(e.data);
       if (msg.type === "stt" && msg.final) {
+        console.log("Resultado del mensaje => ", e); // kypanz test
         setText(msg.text);
         sendFromSTTChat(msg.text);
         setStatusRecording("Activado");
