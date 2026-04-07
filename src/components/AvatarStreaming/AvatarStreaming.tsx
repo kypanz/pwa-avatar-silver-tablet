@@ -345,6 +345,7 @@ export default function AvatarStreaming({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
+          emotion: emotion,
           type: "chat",
           interrupt: true,
           sessionid: Number(sessionId),
