@@ -13,9 +13,6 @@ export default function AvatarStreaming({
   messageToSay: String;
   setMessageToSay: any;
 }) {
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const interruptingRef = useRef(false);
-
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -486,58 +483,6 @@ export default function AvatarStreaming({
     audioCtxRef.current = new AudioContext({ sampleRate: 16000 });
 
     const source = audioCtxRef.current.createMediaStreamSource(stream);
-
-    // testing
-    const analyser = audioCtxRef.current.createAnalyser();
-    analyser.fftSize = 512;
-
-    source.connect(analyser);
-    analyserRef.current = analyser;
-
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-    function detectVolume() {
-      if (!analyserRef.current) return;
-
-      analyserRef.current.getByteTimeDomainData(dataArray);
-
-      let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) {
-        const v = (dataArray[i] - 128) / 128;
-        sum += v * v;
-      }
-
-      const volume = Math.sqrt(sum / dataArray.length);
-
-      // 🔥 threshold ajustable
-      if (volume > 0.05) {
-        if (!interruptingRef.current) {
-          interruptingRef.current = true;
-
-          console.log("🛑 Interrumpiendo avatar por voz");
-
-          fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: "",
-              type: "interrupt",
-              interrupt: true,
-              sessionid: Number(sessionId),
-            }),
-          });
-        }
-      } else {
-        interruptingRef.current = false;
-      }
-
-      requestAnimationFrame(detectVolume);
-    }
-
-    detectVolume();
-
-    // end testing
-
     processorRef.current = audioCtxRef.current.createScriptProcessor(
       2048,
       1,
