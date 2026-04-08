@@ -479,6 +479,7 @@ export default function AvatarStreaming({
         setText(msg.text);
         setEmotion(msg.emotion);
         sendFromSTTChat(msg.text);
+        console.log("Emocion actual => ", emotion, msg.emotion);
         setStatusRecording("Activado");
       }
     };
