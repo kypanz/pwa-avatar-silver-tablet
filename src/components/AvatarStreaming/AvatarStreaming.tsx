@@ -345,7 +345,7 @@ export default function AvatarStreaming({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
-          emotion: emotion,
+          emotion: emotion.current,
           type: "chat",
           interrupt: true,
           sessionid: Number(sessionId),
@@ -459,7 +459,8 @@ export default function AvatarStreaming({
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sttStartedRef = useRef(false);
   const [text, setText] = useState("");
-  const [emotion, setEmotion] = useState("none");
+  // const [emotion, setEmotion] = useState("none");
+  const emotion = useRef("none");
   const [statusRecording, setStatusRecording] = useState("Desactivado");
 
   if (import.meta.env.DEV) {
@@ -477,7 +478,8 @@ export default function AvatarStreaming({
       if (msg.type === "stt" && msg.final) {
         console.log("Resultado del mensaje => ", e); // kypanz test
         setText(msg.text);
-        setEmotion(msg.emotion);
+        // setEmotion(msg.emotion);
+        emotion.current = msg.emotion;
         sendFromSTTChat(msg.text);
         console.log("Emocion actual => ", emotion, msg.emotion);
         setStatusRecording("Activado");
