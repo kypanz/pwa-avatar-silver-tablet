@@ -133,6 +133,7 @@ export default function AvatarStreaming({
   console.log("Mensaje a decir : ", messageToSay);
   useEffect(() => {
     setInterval(async () => {
+      console.log("Mensaje a decir 2 : ", messageToSay);
       if (messageToSay != "" && sessionId != 0) {
         await sendScheduledEcho({ text: messageToSay });
         // await new Promise((resolve, reject) => {
@@ -146,7 +147,7 @@ export default function AvatarStreaming({
         // });
       }
     }, 20000);
-  }, []);
+  }, [messageToSay]);
 
   // End Added
 
