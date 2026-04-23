@@ -10,7 +10,7 @@ export default function AvatarStreaming({
   setMessageToSay,
 }: {
   port: String;
-  messageToSay: String;
+  messageToSay: string;
   setMessageToSay: any;
 }) {
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -109,44 +109,44 @@ export default function AvatarStreaming({
   }, [sessionId]);
 
   // Added by Kyp4nz
-  // useEffect(() => {
-  //   setInterval(async () => {
-  //    if(messageToSay != "" && sessionId != 0) {
-  //      await sendScheduledEcho({text : messageToSay})
-  //      // await new Promise((resolve, reject) => {
-  //      // try {
-  //      //   setTimeout(() => {
-  //      //    resolve(true);
-  //      //   }, 2000);
-  //      // } catch (error) {
-  //      //   reject(false);
-  //      // }
-  //      // });
-  //    }
-  //   }, 20000);
-  // }, []);
+  const sendScheduledEcho = async ({ text }: { text: string }) => {
+    if (!text || text == "") return;
 
-  // const sendScheduledEcho = async ({text} : {text : string}) => {
-  //   if (!text || text == "") return;
-  //
-  //   try {
-  //     await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({
-  //         text,
-  //         type: 'echo',
-  //         interrupt: false,
-  //         sessionid: Number(sessionId)
-  //       })
-  //     });
-  //     addChatMessage(`solicitud enviada: "${text}"`, 'system');
-  //     setMessageToSay("");
-  //   } catch (err) {
-  //     console.error('Error enviando /human echo:', err);
-  //     addChatMessage('Fallo al enviar TTS al backend.', 'system');
-  //   }
-  // };
+    try {
+      await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          type: "echo",
+          interrupt: false,
+          sessionid: Number(sessionId),
+        }),
+      });
+      addChatMessage(`solicitud enviada: "${text}"`, "system");
+      setMessageToSay("");
+    } catch (err) {
+      console.error("Error enviando /human echo:", err);
+      addChatMessage("Fallo al enviar TTS al backend.", "system");
+    }
+  };
+  useEffect(() => {
+    setInterval(async () => {
+      if (messageToSay != "" && sessionId != 0) {
+        await sendScheduledEcho({ text: messageToSay });
+        // await new Promise((resolve, reject) => {
+        // try {
+        //   setTimeout(() => {
+        //    resolve(true);
+        //   }, 2000);
+        // } catch (error) {
+        //   reject(false);
+        // }
+        // });
+      }
+    }, 20000);
+  }, []);
+
   // End Added
 
   useEffect(() => {
