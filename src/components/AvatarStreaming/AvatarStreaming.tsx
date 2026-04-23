@@ -130,6 +130,7 @@ export default function AvatarStreaming({
       addChatMessage("Fallo al enviar TTS al backend.", "system");
     }
   };
+  console.log("Mensaje a decir : ", messageToSay);
   useEffect(() => {
     setInterval(async () => {
       if (messageToSay != "" && sessionId != 0) {
