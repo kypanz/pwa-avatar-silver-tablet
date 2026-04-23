@@ -130,7 +130,12 @@ export default function AvatarStreaming({
       addChatMessage("Fallo al enviar TTS al backend.", "system");
     }
   };
-  console.log("Mensaje a decir : ", messageToSay);
+  console.log(
+    "Session actual : ",
+    sessionId,
+    "Mensaje a decir : ",
+    messageToSay,
+  );
   useEffect(() => {
     setInterval(async () => {
       console.log(
@@ -221,6 +226,7 @@ export default function AvatarStreaming({
     // backend returns answer SDP + sessionid
     if (answer.sessionid !== undefined) {
       setSessionId(Number(answer.sessionid));
+      console.log("Session ID de conexion : ", answer.sessionid);
     }
     // set remote description (assume answer has sdp & type)
     await pcInstance.setRemoteDescription({
