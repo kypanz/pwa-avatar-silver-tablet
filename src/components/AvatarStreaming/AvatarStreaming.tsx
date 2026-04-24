@@ -123,7 +123,8 @@ export default function AvatarStreaming({
           text,
           type: "echo",
           interrupt: false,
-          sessionid: Number(sessionId),
+          sessionid: currentState.session_id,
+          // sessionid: Number(sessionId),
         }),
       });
       addChatMessage(`solicitud enviada: "${text}"`, "system");
@@ -160,7 +161,7 @@ export default function AvatarStreaming({
         // });
       }
     }, 20000);
-  }, [messageToSay]);
+  }, []);
 
   // End Added
 
