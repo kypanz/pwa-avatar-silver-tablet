@@ -4,6 +4,9 @@ import "./AvatarStreaming.css";
 
 type ChatMsg = { sender: string; text: string; type: "user" | "system" };
 
+// const taskToSay = [];
+const currentState = { session_id: 0 };
+
 export default function AvatarStreaming({
   port,
   messageToSay,
@@ -140,7 +143,7 @@ export default function AvatarStreaming({
     setInterval(async () => {
       console.log(
         "Session actual : ",
-        sessionId,
+        currentState.session_id,
         " Mensaje a decir 2 : ",
         messageToSay,
       );
@@ -227,6 +230,7 @@ export default function AvatarStreaming({
     if (answer.sessionid !== undefined) {
       setSessionId(Number(answer.sessionid));
       console.log("Session ID de conexion : ", answer.sessionid);
+      currentState.session_id = Number(answer.sessionid);
     }
     // set remote description (assume answer has sdp & type)
     await pcInstance.setRemoteDescription({
