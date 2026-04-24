@@ -148,17 +148,9 @@ export default function AvatarStreaming({
         " Mensaje a decir 2 : ",
         messageToSay,
       );
-      if (messageToSay != "" && currentState.session_id != 0) {
+      if (messageToSay != "" && sessionId != 0) {
+        //currentState.session_id | Work
         await sendScheduledEcho({ text: messageToSay });
-        // await new Promise((resolve, reject) => {
-        // try {
-        //   setTimeout(() => {
-        //    resolve(true);
-        //   }, 2000);
-        // } catch (error) {
-        //   reject(false);
-        // }
-        // });
       }
     }, 20000);
   }, []);
