@@ -214,6 +214,8 @@ export default function TalkToAvatar() {
             setMessageToSay(
               "Tienes un recordatorio, recuerda que " + content_message,
             );
+            // TODO : Add all the tasks to an array task here and then print them ( then send the entire array to the Streaming )
+            console.log("Current Tasks : ", response.data.message);
           }
         }
       }
