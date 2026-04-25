@@ -7,6 +7,7 @@ import { Button } from "keep-react";
 import AvatarStreaming from "../../components/AvatarStreaming/AvatarStreaming";
 
 export default function TalkToAvatar() {
+  const taskToSay: any[] = [];
   const [currentBrowser, setCurrentBrowser] = useState("no detectado");
   const userAgent = navigator.userAgent.toLowerCase();
 
@@ -209,13 +210,18 @@ export default function TalkToAvatar() {
           }
           if (response.data.message) {
             const content_message = response.data.message.message;
-            const msg = "[ Recordatorio ] : " + content_message;
-            console.log("recoo => ", msg);
-            setMessageToSay(
-              "Tienes un recordatorio, recuerda que " + content_message,
-            );
-            // TODO : Add all the tasks to an array task here and then print them ( then send the entire array to the Streaming )
-            console.log("Current Tasks : ", response.data.message);
+            // const msg = "[ Recordatorio ] : " + content_message;
+            // console.log("recoo => ", msg);
+            if (content_message.length > 0) {
+              setMessageToSay(
+                "Tienes un recordatorio, recuerda que " + content_message[0],
+              );
+              // TODO : Add all the tasks to an array task here and then print them ( then send the entire array to the Streaming )
+              console.log("Current Tasks : ", response.data.message);
+              console.log("Task to say : ", taskToSay);
+            } else {
+              console.log("Sin tareas programdas por ahora.");
+            }
           }
         }
       }

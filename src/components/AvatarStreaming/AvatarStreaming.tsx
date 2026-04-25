@@ -4,7 +4,6 @@ import "./AvatarStreaming.css";
 
 type ChatMsg = { sender: string; text: string; type: "user" | "system" };
 
-// const taskToSay = [];
 const currentState = { session_id: 0 };
 
 export default function AvatarStreaming({
