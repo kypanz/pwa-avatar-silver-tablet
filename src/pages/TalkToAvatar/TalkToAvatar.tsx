@@ -196,10 +196,9 @@ export default function TalkToAvatar() {
 
   // Added by Kyp4nz
   // const [messageToSay, setMessageToSay] = useState("");
-  const [messageToSay, setMessageToSay] = useState<{
-    id: string;
-    text: string;
-  } | null>(null);
+  const [messageQueue, setMessageQueue] = useState<
+    { id: string; text: string }[]
+  >([]);
   const checkScheduledMessages = async () => {
     try {
       const device_id = localStorage.getItem("mayiq-device-id");
@@ -219,21 +218,24 @@ export default function TalkToAvatar() {
             // const msg = "[ Recordatorio ] : " + content_message;
             // console.log("recoo => ", msg);
             if (tasks.length > 0) {
-              const newTask = tasks.find(
+              const newTasks = tasks.filter(
                 (t: any) =>
                   !t.is_readed && !processedTasksRef.current.has(t._id),
               );
 
-              if (!newTask) return;
+              if (newTasks.length === 0) return;
 
-              // marcar como procesada en frontend
-              processedTasksRef.current.add(newTask._id);
-
-              // enviar al avatar (NO marcar como leída acá)
-              setMessageToSay({
-                id: newTask._id,
-                text: "Tienes un recordatorio, recuerda que " + newTask.message,
+              // marcar como procesadas en frontend
+              newTasks.forEach((t: any) => {
+                processedTasksRef.current.add(t._id);
               });
+
+              const formattedTasks = newTasks.map((t: any) => ({
+                id: t._id,
+                text: "Tienes un recordatorio, recuerda que " + t.message,
+              }));
+
+              setMessageQueue((prev) => [...prev, ...formattedTasks]);
 
               try {
               } catch (err) {
@@ -378,8 +380,10 @@ export default function TalkToAvatar() {
               {isGameActive ? <RenderGame /> : null}
               <AvatarStreaming
                 port={portModelAvatar}
-                messageToSay={messageToSay}
-                setMessageToSay={setMessageToSay}
+                messageQueue={messageQueue}
+                setMessageQueue={setMessageQueue}
+                // messageToSay={messageToSay}
+                // setMessageToSay={setMessageToSay}
               />
               {/*<Avatar2DComponent />*/}
             </>

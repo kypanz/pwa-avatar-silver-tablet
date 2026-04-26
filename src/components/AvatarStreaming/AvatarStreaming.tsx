@@ -9,12 +9,16 @@ const currentState = { session_id: 0 };
 
 export default function AvatarStreaming({
   port,
-  messageToSay,
-  setMessageToSay,
+  messageQueue,
+  setMessageQueue,
+  // messageToSay,
+  // setMessageToSay,
 }: {
   port: String;
-  messageToSay: { id: string; text: string } | null;
-  setMessageToSay: any;
+  messageQueue: { id: string; text: string }[];
+  setMessageQueue: any;
+  // messageToSay: { id: string; text: string } | null;
+  // setMessageToSay: any;
 }) {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const interruptingRef = useRef(false);
@@ -63,7 +67,7 @@ export default function AvatarStreaming({
   };
 
   if (import.meta.env.DEV) {
-    console.log("message => ", messageToSay, setMessageToSay);
+    // console.log("message => ", messageToSay, setMessageToSay);
   }
 
   useEffect(() => {
@@ -143,41 +147,70 @@ export default function AvatarStreaming({
         }),
       });
       addChatMessage(`solicitud enviada: "${text}"`, "system");
-      setMessageToSay("");
+      // setMessageToSay("");
     } catch (err) {
       console.error("Error enviando /human echo:", err);
       addChatMessage("Fallo al enviar TTS al backend.", "system");
     }
   };
-  console.log(
-    "Session actual : ",
-    sessionId,
-    "Mensaje a decir : ",
-    messageToSay,
-  );
+  // console.log(
+  //   "Session actual : ",
+  //   sessionId,
+  //   "Mensaje a decir : ",
+  //   messageToSay,
+  // );
 
   useEffect(() => {
-    let running = false;
+    if (!avatarReady || sessionId === 0) return;
+    if (messageQueue.length === 0) return;
 
-    const interval = setInterval(async () => {
-      if (running) return;
-      running = true;
+    const processNext = async () => {
+      const next = messageQueue[0];
 
-      try {
-        if (messageToSay && sessionId !== 0 && avatarReady) {
-          currentTaskRef.current = messageToSay;
+      if (!next) return;
 
-          await sendScheduledEcho({ text: messageToSay.text });
+      await sendScheduledEcho({ text: next.text });
 
-          setMessageToSay(null);
-        }
-      } finally {
-        running = false;
-      }
-    }, 5000);
+      await fetch(
+        `https://p${port}${import.meta.env.VITE_APP_AVATAR}/read-task`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            task_id: next.id,
+          }),
+        },
+      );
 
-    return () => clearInterval(interval);
-  }, [messageToSay, sessionId, avatarReady]);
+      // eliminar el primero de la cola
+      setMessageQueue((prev: any) => prev.slice(1));
+    };
+
+    processNext();
+  }, [messageQueue, avatarReady, sessionId]);
+
+  // useEffect(() => {
+  //   let running = false;
+  //
+  //   const interval = setInterval(async () => {
+  //     if (running) return;
+  //     running = true;
+  //
+  //     try {
+  //       if (messageToSay && sessionId !== 0 && avatarReady) {
+  //         currentTaskRef.current = messageToSay;
+  //
+  //         await sendScheduledEcho({ text: messageToSay.text });
+  //
+  //         setMessageToSay(null);
+  //       }
+  //     } finally {
+  //       running = false;
+  //     }
+  //   }, 5000);
+  //
+  //   return () => clearInterval(interval);
+  // }, [messageToSay, sessionId, avatarReady]);
 
   // useEffect(() => {
   //   const interval = setInterval(async () => {
