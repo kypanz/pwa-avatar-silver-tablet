@@ -20,6 +20,9 @@ export default function AvatarStreaming({
   // messageToSay: { id: string; text: string } | null;
   // setMessageToSay: any;
 }) {
+  // Para tareas
+  const isProcessingRef = useRef(false);
+
   const analyserRef = useRef<AnalyserNode | null>(null);
   const interruptingRef = useRef(false);
 
@@ -106,7 +109,13 @@ export default function AvatarStreaming({
               }),
             });
 
+            // 🔥 eliminar de la cola recién ahora
+            setMessageQueue((prev: any) => prev.slice(1));
+
             currentTaskRef.current = null;
+
+            // 🔓 liberar procesamiento
+            isProcessingRef.current = false;
           }
         }
       } catch (err) {
@@ -163,27 +172,19 @@ export default function AvatarStreaming({
   useEffect(() => {
     if (!avatarReady || sessionId === 0) return;
     if (messageQueue.length === 0) return;
+    if (isProcessingRef.current) return;
 
     const processNext = async () => {
       const next = messageQueue[0];
-
       if (!next) return;
+
+      isProcessingRef.current = true;
+
+      currentTaskRef.current = next;
 
       await sendScheduledEcho({ text: next.text });
 
-      await fetch(
-        `https://p${port}${import.meta.env.VITE_APP_AVATAR}/read-task`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            task_id: next.id,
-          }),
-        },
-      );
-
-      // eliminar el primero de la cola
-      setMessageQueue((prev: any) => prev.slice(1));
+      // ⚠️ NO eliminar ni marcar como leída acá
     };
 
     processNext();
