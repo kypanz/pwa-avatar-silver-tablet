@@ -1,5 +1,6 @@
 // AvatarStreaming.tsx
 import React, { useEffect, useRef, useState } from "react";
+import { endpoints } from "../../utils/endpoints/endpoints";
 import "./AvatarStreaming.css";
 
 type ChatMsg = { sender: string; text: string; type: "user" | "system" };
@@ -93,16 +94,13 @@ export default function AvatarStreaming({
           addChatMessage(data.text, "system");
 
           if (currentTaskRef.current) {
-            await fetch(
-              `https://p${port}${import.meta.env.VITE_APP_AVATAR}/read-task`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  task_id: currentTaskRef.current.id,
-                }),
-              },
-            );
+            await fetch(endpoints.readTask, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                task_id: currentTaskRef.current.id,
+              }),
+            });
 
             currentTaskRef.current = null;
           }
