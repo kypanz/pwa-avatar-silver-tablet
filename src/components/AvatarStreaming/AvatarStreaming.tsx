@@ -12,7 +12,7 @@ export default function AvatarStreaming({
   setMessageToSay,
 }: {
   port: String;
-  messageToSay: string;
+  messageToSay: { id: string; text: string } | null;
   setMessageToSay: any;
 }) {
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -33,6 +33,10 @@ export default function AvatarStreaming({
   // const [useStun] = useState(false);
   const [activeTab, setActiveTab] = useState<"chat" | "tts">("chat");
   const assistantWsRef = useRef<WebSocket | null>(null);
+
+  // Para las tareas
+  const [avatarReady, setAvatarReady] = useState(false);
+  const currentTaskRef = useRef<{ id: string; text: string } | null>(null);
 
   // Para medir tiempos
   const requestStartTimeRef = useRef<number | null>(null);
@@ -76,7 +80,7 @@ export default function AvatarStreaming({
       console.log("📝 Assistant text WS conectado");
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.text) {
@@ -86,8 +90,22 @@ export default function AvatarStreaming({
 
             console.log("⏱ Tiempo de respuesta:", latency, "segundos");
           }
-
           addChatMessage(data.text, "system");
+
+          if (currentTaskRef.current) {
+            await fetch(
+              `https://p${port}${import.meta.env.VITE_APP_AVATAR}/read-task`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  task_id: currentTaskRef.current.id,
+                }),
+              },
+            );
+
+            currentTaskRef.current = null;
+          }
         }
       } catch (err) {
         console.error("Error parseando assistant_text:", err);
@@ -139,21 +157,83 @@ export default function AvatarStreaming({
     "Mensaje a decir : ",
     messageToSay,
   );
+
   useEffect(() => {
-    setInterval(async () => {
-      console.log(
-        "Session actual : ",
-        currentState.session_id,
-        " Mensaje a decir 2 : ",
-        messageToSay,
-      );
-      if (messageToSay != "" && sessionId != 0) {
-        //currentState.session_id | Work
-        await sendScheduledEcho({ text: messageToSay });
-        setMessageToSay("");
+    let running = false;
+
+    const interval = setInterval(async () => {
+      if (running) return;
+      running = true;
+
+      try {
+        if (messageToSay && sessionId !== 0 && avatarReady) {
+          currentTaskRef.current = messageToSay;
+
+          await sendScheduledEcho({ text: messageToSay.text });
+
+          setMessageToSay(null);
+        }
+      } finally {
+        running = false;
       }
-    }, 20000);
-  }, []);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [messageToSay, sessionId, avatarReady]);
+
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     if (messageToSay && sessionId !== 0 && avatarReady) {
+  //       currentTaskRef.current = messageToSay;
+  //       await sendScheduledEcho({ text: messageToSay.text });
+  //
+  //       // await fetch(
+  //       //   `https://p${port}${import.meta.env.VITE_APP_AVATAR}/read-task`,
+  //       //   {
+  //       //     method: "POST",
+  //       //     headers: { "Content-Type": "application/json" },
+  //       //     body: JSON.stringify({
+  //       //       task_id: messageToSay.id,
+  //       //     }),
+  //       //   },
+  //       // );
+  //
+  //       setMessageToSay(null);
+  //     }
+  //   }, 20000);
+  //
+  //   return () => clearInterval(interval);
+  // }, [messageToSay, sessionId, avatarReady]);
+
+  // useEffect(() => {
+  //   setInterval(async () => {
+  //     console.log(
+  //       "Session actual : ",
+  //       currentState.session_id,
+  //       " Mensaje a decir 2 : ",
+  //       messageToSay,
+  //     );
+  //     // if (messageToSay != "" && sessionId != 0) {
+  //     if (messageToSay && sessionId !== 0 && avatarReady) {
+  //       //currentState.session_id | Work
+  //       // await sendScheduledEcho({ text: messageToSay });
+  //       // setMessageToSay("");
+  //       await sendScheduledEcho({ text: messageToSay.text });
+  //
+  //       await fetch(
+  //         `https://p${port}${import.meta.env.VITE_APP_AVATAR}/read-task`,
+  //         {
+  //           method: "POST",
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify({
+  //             task_id: messageToSay.id,
+  //           }),
+  //         },
+  //       );
+  //       setMessageToSay(null);
+  //     }
+  //   }, 20000);
+  // }, []);
 
   // End Added
 
@@ -269,6 +349,17 @@ export default function AvatarStreaming({
       } else if (evt.track.kind === "audio" && audioRef.current) {
         audioRef.current.srcObject = evt.streams[0];
       }
+
+      // 🔥 AVATAR LISTO (media recibida)
+      if (!avatarReady) {
+        setAvatarReady(true);
+      }
+
+      // if (evt.track.kind === "video" && videoRef.current) {
+      //   videoRef.current.srcObject = evt.streams[0];
+      // } else if (evt.track.kind === "audio" && audioRef.current) {
+      //   audioRef.current.srcObject = evt.streams[0];
+      // }
     };
 
     pcInstance.onconnectionstatechange = () => {
@@ -305,6 +396,9 @@ export default function AvatarStreaming({
     }
     setConnected(false);
     setConnecting(false);
+    setAvatarReady(false); // 🔥 agregar esto
+    // setConnected(false);
+    // setConnecting(false);
   };
 
   // Added by Kyp4nz

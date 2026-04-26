@@ -195,7 +195,11 @@ export default function TalkToAvatar() {
   }, [portModelAvatar]);
 
   // Added by Kyp4nz
-  const [messageToSay, setMessageToSay] = useState("");
+  // const [messageToSay, setMessageToSay] = useState("");
+  const [messageToSay, setMessageToSay] = useState<{
+    id: string;
+    text: string;
+  } | null>(null);
   const checkScheduledMessages = async () => {
     try {
       const device_id = localStorage.getItem("mayiq-device-id");
@@ -216,7 +220,8 @@ export default function TalkToAvatar() {
             // console.log("recoo => ", msg);
             if (tasks.length > 0) {
               const newTask = tasks.find(
-                (t: any) => !processedTasksRef.current.has(t._id),
+                (t: any) =>
+                  !t.is_readed && !processedTasksRef.current.has(t._id),
               );
 
               if (!newTask) return;
@@ -224,18 +229,13 @@ export default function TalkToAvatar() {
               // marcar como procesada en frontend
               processedTasksRef.current.add(newTask._id);
 
-              // mandar al avatar
-              setMessageToSay(
-                "Tienes un recordatorio, recuerda que " + newTask.message,
-              );
-
-              console.log("El mensaje de la tarea ya se leyo correctamente.");
+              // enviar al avatar (NO marcar como leída acá)
+              setMessageToSay({
+                id: newTask._id,
+                text: "Tienes un recordatorio, recuerda que " + newTask.message,
+              });
 
               try {
-                // 🔥 marcar como leída en backend
-                await axios.post(endpoints.readTask, {
-                  task_id: newTask._id,
-                });
               } catch (err) {
                 console.error("Error marcando tarea como leída", err);
               }
