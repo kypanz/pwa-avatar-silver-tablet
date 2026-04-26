@@ -209,12 +209,12 @@ export default function TalkToAvatar() {
             return;
           }
           if (response.data.message) {
-            const content_message = response.data.message.message;
+            const tasks = response.data.message;
             // const msg = "[ Recordatorio ] : " + content_message;
             // console.log("recoo => ", msg);
-            if (content_message.length > 0) {
+            if (tasks.length > 0) {
               setMessageToSay(
-                "Tienes un recordatorio, recuerda que " + content_message[0],
+                "Tienes un recordatorio, recuerda que " + tasks[0],
               );
               // TODO : Add all the tasks to an array task here and then print them ( then send the entire array to the Streaming )
               console.log("Current Tasks : ", response.data.message);
