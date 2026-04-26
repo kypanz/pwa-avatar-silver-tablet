@@ -150,6 +150,7 @@ export default function AvatarStreaming({
       if (messageToSay != "" && sessionId != 0) {
         //currentState.session_id | Work
         await sendScheduledEcho({ text: messageToSay });
+        setMessageToSay("");
       }
     }, 20000);
   }, []);

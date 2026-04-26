@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { endpoints } from "../../utils/endpoints/endpoints";
 import axios from "axios";
@@ -7,7 +7,9 @@ import { Button } from "keep-react";
 import AvatarStreaming from "../../components/AvatarStreaming/AvatarStreaming";
 
 export default function TalkToAvatar() {
-  const taskToSay: any[] = [];
+  // Para las tareas
+  const processedTasksRef = useRef<Set<string>>(new Set());
+
   const [currentBrowser, setCurrentBrowser] = useState("no detectado");
   const userAgent = navigator.userAgent.toLowerCase();
 
@@ -213,14 +215,30 @@ export default function TalkToAvatar() {
             // const msg = "[ Recordatorio ] : " + content_message;
             // console.log("recoo => ", msg);
             if (tasks.length > 0) {
-              setMessageToSay(
-                "Tienes un recordatorio, recuerda que " + tasks[0],
+              const newTask = tasks.find(
+                (t: any) => !processedTasksRef.current.has(t._id),
               );
-              // TODO : Add all the tasks to an array task here and then print them ( then send the entire array to the Streaming )
-              console.log("Current Tasks : ", response.data.message);
-              console.log("Task to say : ", taskToSay);
-            } else {
-              console.log("Sin tareas programdas por ahora.");
+
+              if (!newTask) return;
+
+              // marcar como procesada en frontend
+              processedTasksRef.current.add(newTask._id);
+
+              // mandar al avatar
+              setMessageToSay(
+                "Tienes un recordatorio, recuerda que " + newTask.message,
+              );
+
+              console.log("El mensaje de la tarea ya se leyo correctamente.");
+
+              try {
+                // 🔥 marcar como leída en backend
+                await axios.post(endpoints.readTask, {
+                  task_id: newTask._id,
+                });
+              } catch (err) {
+                console.error("Error marcando tarea como leída", err);
+              }
             }
           }
         }
@@ -234,9 +252,15 @@ export default function TalkToAvatar() {
   };
 
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
       checkScheduledMessages();
     }, 5000);
+
+    return () => clearInterval(interval);
+
+    // setInterval(() => {
+    //   checkScheduledMessages();
+    // }, 5000);
   }, []);
 
   // End added
