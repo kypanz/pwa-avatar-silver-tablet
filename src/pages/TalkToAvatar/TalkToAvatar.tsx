@@ -213,15 +213,29 @@ export default function TalkToAvatar() {
             // console.log("No hay tareas programadas por ahora.");
             return;
           }
+
           if (response.data.message) {
             const tasks = response.data.message;
-            // const msg = "[ Recordatorio ] : " + content_message;
-            // console.log("recoo => ", msg);
+
             if (tasks.length > 0) {
-              const newTasks = tasks.filter(
-                (t: any) =>
-                  !t.is_readed && !processedTasksRef.current.has(t._id),
-              );
+              const now = Date.now();
+
+              const newTasks = tasks.filter((t: any) => {
+                // ya leída o ya procesada
+                if (t.is_readed || processedTasksRef.current.has(t._id))
+                  return false;
+
+                // sin fecha programada → ignorar
+                if (!t.scheduled_time) return false;
+
+                const taskTime = new Date(t.scheduled_time).getTime();
+
+                // si la fecha es inválida → ignorar
+                if (isNaN(taskTime)) return false;
+
+                // 🔥 solo permitir tareas cuyo tiempo ya llegó
+                return taskTime <= now;
+              });
 
               if (newTasks.length === 0) return;
 
@@ -238,11 +252,43 @@ export default function TalkToAvatar() {
               setMessageQueue((prev) => [...prev, ...formattedTasks]);
 
               try {
+                // (opcional: aquí podrías marcar como leídas en backend)
               } catch (err) {
                 console.error("Error marcando tarea como leída", err);
               }
             }
           }
+
+          // if (response.data.message) {
+          //   const tasks = response.data.message;
+          //   // const msg = "[ Recordatorio ] : " + content_message;
+          //   // console.log("recoo => ", msg);
+          //   if (tasks.length > 0) {
+          //     const newTasks = tasks.filter(
+          //       (t: any) =>
+          //         !t.is_readed && !processedTasksRef.current.has(t._id),
+          //     );
+          //
+          //     if (newTasks.length === 0) return;
+          //
+          //     // marcar como procesadas en frontend
+          //     newTasks.forEach((t: any) => {
+          //       processedTasksRef.current.add(t._id);
+          //     });
+          //
+          //     const formattedTasks = newTasks.map((t: any) => ({
+          //       id: t._id,
+          //       text: "Tienes un recordatorio, recuerda que " + t.message,
+          //     }));
+          //
+          //     setMessageQueue((prev) => [...prev, ...formattedTasks]);
+          //
+          //     try {
+          //     } catch (err) {
+          //       console.error("Error marcando tarea como leída", err);
+          //     }
+          //   }
+          // }
         }
       }
     } catch (error) {
