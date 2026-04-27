@@ -102,7 +102,7 @@ export default function AvatarStreaming({
             console.log("⏱ Tiempo de respuesta:", latency, "segundos");
           }
           addChatMessage(data.text, "system");
-
+          console.log("onmessage currentTaskRef : ", currentTaskRef);
           if (currentTaskRef.current) {
             await fetch(endpoints.readTask, {
               method: "POST",
