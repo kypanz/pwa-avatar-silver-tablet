@@ -229,6 +229,7 @@ export default function AvatarStreaming({
 
     const processNext = async () => {
       const next = messageQueue[0];
+      console.log("Al inciar processNext : ", messageQueue);
       if (!next) return;
 
       isProcessingRef.current = true;
