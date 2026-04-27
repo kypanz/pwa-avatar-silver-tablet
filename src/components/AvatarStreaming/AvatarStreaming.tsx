@@ -123,6 +123,10 @@ export default function AvatarStreaming({
         }
       } catch (err) {
         console.error("Error parseando assistant_text:", err);
+      } finally {
+        // 🔥 SIEMPRE se ejecuta pase lo que pase
+        isAvatarSpeakingRef.current = false;
+        isProcessingRef.current = false;
       }
     };
 
