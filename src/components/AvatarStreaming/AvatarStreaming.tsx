@@ -168,6 +168,7 @@ export default function AvatarStreaming({
         console.log("⏹ Forzando fin de habla (echo)");
 
         try {
+          console.log("Verificando currentTaskRef : ", currentTaskRef);
           if (currentTaskRef.current) {
             await fetch(endpoints.readTask, {
               method: "POST",
