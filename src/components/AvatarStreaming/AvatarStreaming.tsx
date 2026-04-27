@@ -178,7 +178,7 @@ export default function AvatarStreaming({
               task_id: currentTaskRef.current.id,
             }),
           });
-
+          console.log("Queue actual : ", messageQueue);
           setMessageQueue((prev: any) => prev.slice(1));
           currentTaskRef.current = null;
         }
