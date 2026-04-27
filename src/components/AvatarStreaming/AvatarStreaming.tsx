@@ -167,22 +167,47 @@ export default function AvatarStreaming({
       setTimeout(async () => {
         console.log("⏹ Forzando fin de habla (echo)");
 
-        isAvatarSpeakingRef.current = false;
-        isProcessingRef.current = false;
+        try {
+          if (currentTaskRef.current) {
+            await fetch(endpoints.readTask, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                task_id: currentTaskRef.current.id,
+              }),
+            });
 
-        if (currentTaskRef.current) {
-          await fetch(endpoints.readTask, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              task_id: currentTaskRef.current.id,
-            }),
-          });
-          console.log("Queue actual : ", messageQueue);
-          setMessageQueue((prev: any) => prev.slice(1));
-          currentTaskRef.current = null;
+            setMessageQueue((prev: any) => prev.slice(1));
+            currentTaskRef.current = null;
+          }
+        } catch (err) {
+          console.error("Error marcando tarea como leída", err);
+        } finally {
+          // 🔥 SIEMPRE se ejecuta pase lo que pase
+          isAvatarSpeakingRef.current = false;
+          isProcessingRef.current = false;
         }
       }, estimatedDuration);
+
+      // setTimeout(async () => {
+      //   console.log("⏹ Forzando fin de habla (echo)");
+      //
+      //   isAvatarSpeakingRef.current = false;
+      //   isProcessingRef.current = false;
+      //
+      //   if (currentTaskRef.current) {
+      //     await fetch(endpoints.readTask, {
+      //       method: "POST",
+      //       headers: { "Content-Type": "application/json" },
+      //       body: JSON.stringify({
+      //         task_id: currentTaskRef.current.id,
+      //       }),
+      //     });
+      //     console.log("Queue actual : ", messageQueue);
+      //     setMessageQueue((prev: any) => prev.slice(1));
+      //     currentTaskRef.current = null;
+      //   }
+      // }, estimatedDuration);
     } catch (err) {
       console.error("Error enviando /human echo:", err);
       addChatMessage("Fallo al enviar TTS al backend.", "system");
