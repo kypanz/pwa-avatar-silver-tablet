@@ -22,6 +22,7 @@ export default function AvatarStreaming({
 }) {
   // Para tareas
   const isProcessingRef = useRef(false);
+  const isAvatarSpeakingRef = useRef(false);
 
   const analyserRef = useRef<AnalyserNode | null>(null);
   const interruptingRef = useRef(false);
@@ -117,7 +118,7 @@ export default function AvatarStreaming({
             currentTaskRef.current = null;
 
             // 🔓 liberar procesamiento
-            isProcessingRef.current = false;
+            // isProcessingRef.current = false;
           }
         }
       } catch (err) {
@@ -174,6 +175,7 @@ export default function AvatarStreaming({
   useEffect(() => {
     if (!avatarReady || sessionId === 0) return;
     if (messageQueue.length === 0) return;
+    if (isAvatarSpeakingRef.current) return;
     if (isProcessingRef.current) return;
 
     const processNext = async () => {
@@ -185,6 +187,7 @@ export default function AvatarStreaming({
       currentTaskRef.current = next;
 
       await sendScheduledEcho({ text: next.text });
+      isProcessingRef.current = false;
 
       // ⚠️ NO eliminar ni marcar como leída acá
     };
@@ -913,6 +916,36 @@ export default function AvatarStreaming({
     ev?.preventDefault();
     stopLocalRecordingAndRecognition();
   };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => {
+      console.log("🟢 Avatar hablando");
+      isAvatarSpeakingRef.current = true;
+    };
+
+    const handleEnded = () => {
+      console.log("🔴 Avatar terminó");
+      isAvatarSpeakingRef.current = false;
+    };
+
+    const handlePause = () => {
+      console.log("⏸ Avatar pausado");
+      isAvatarSpeakingRef.current = false;
+    };
+
+    audio.addEventListener("play", handlePlay);
+    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("pause", handlePause);
+
+    return () => {
+      audio.removeEventListener("play", handlePlay);
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("pause", handlePause);
+    };
+  }, []);
 
   return (
     <div className="dashboard-container">
