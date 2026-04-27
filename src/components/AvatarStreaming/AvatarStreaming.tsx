@@ -91,6 +91,7 @@ export default function AvatarStreaming({
     ws.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log("Evento completo : ", event);
         console.log("Respuesta onmessage => ", data);
         if (data.text) {
           if (requestStartTimeRef.current) {
