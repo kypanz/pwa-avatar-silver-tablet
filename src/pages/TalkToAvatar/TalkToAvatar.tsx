@@ -229,6 +229,7 @@ export default function TalkToAvatar() {
                 if (!t.scheduled_time) return false;
 
                 const taskTime = new Date(t.scheduled_time).getTime();
+                console.log("Fecha programada para esta tarea : ", taskTime);
 
                 // si la fecha es inválida → ignorar
                 if (isNaN(taskTime)) return false;
