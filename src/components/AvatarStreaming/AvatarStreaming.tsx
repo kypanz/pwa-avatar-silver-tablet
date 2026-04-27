@@ -187,7 +187,8 @@ export default function AvatarStreaming({
       currentTaskRef.current = next;
 
       await sendScheduledEcho({ text: next.text });
-      isProcessingRef.current = false;
+      isAvatarSpeakingRef.current = true;
+      // isProcessingRef.current = false;
 
       // ⚠️ NO eliminar ni marcar como leída acá
     };
@@ -929,6 +930,7 @@ export default function AvatarStreaming({
     const handleEnded = () => {
       console.log("🔴 Avatar terminó");
       isAvatarSpeakingRef.current = false;
+      isProcessingRef.current = false;
     };
 
     const handlePause = () => {
