@@ -102,7 +102,7 @@ export default function AvatarStreaming({
             console.log("⏱ Tiempo de respuesta:", latency, "segundos");
           }
           addChatMessage(data.text, "system");
-          console.log("onmessage currentTaskRef : ", currentTaskRef);
+          console.log("onmessage currentTaskRef : ", currentTaskRef.current);
           if (currentTaskRef.current) {
             await fetch(endpoints.readTask, {
               method: "POST",
@@ -168,7 +168,7 @@ export default function AvatarStreaming({
         console.log("⏹ Forzando fin de habla (echo)");
 
         try {
-          console.log("Verificando currentTaskRef : ", currentTaskRef);
+          console.log("Verificando currentTaskRef : ", currentTaskRef.current);
           if (currentTaskRef.current) {
             await fetch(endpoints.readTask, {
               method: "POST",
