@@ -160,6 +160,29 @@ export default function AvatarStreaming({
       });
       addChatMessage(`solicitud enviada: "${text}"`, "system");
       // setMessageToSay("");
+      // 🔥 FORZAR FIN DESPUÉS DE X TIEMPO
+      const estimatedDuration = Math.max(1500, text.length * 50);
+      // aprox: 50ms por carácter
+
+      setTimeout(async () => {
+        console.log("⏹ Forzando fin de habla (echo)");
+
+        isAvatarSpeakingRef.current = false;
+        isProcessingRef.current = false;
+
+        if (currentTaskRef.current) {
+          await fetch(endpoints.readTask, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              task_id: currentTaskRef.current.id,
+            }),
+          });
+
+          setMessageQueue((prev: any) => prev.slice(1));
+          currentTaskRef.current = null;
+        }
+      }, estimatedDuration);
     } catch (err) {
       console.error("Error enviando /human echo:", err);
       addChatMessage("Fallo al enviar TTS al backend.", "system");
