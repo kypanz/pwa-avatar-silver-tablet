@@ -1,4 +1,3 @@
-/* Copia aquí el CSS que tenías en el <style> del HTML original */
 :root {
     --primary-color: #4361ee;
     --secondary-color: #3f37c9;
@@ -59,6 +58,157 @@ video {
     border-radius: var(--border-radius);
 }
 
-/* ... resto de tu CSS (botones, controles, grabación, etc.) ... */
+/* Recording indicator */
+.recording-indicator {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 20;
+    backdrop-filter: blur(4px);
+}
 
+.blink {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff4444;
+    animation: blink-anim 1s infinite;
+}
 
+@keyframes blink-anim {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* ===============================
+   FULLSCREEN OVERLAY
+   =============================== */
+
+/* Chat overlay on top of video */
+.fs-chat-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 80px;
+    background: rgba(0, 0, 0, 0.65);
+    color: white;
+    padding: 16px;
+    overflow-y: auto;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+
+.fs-chat-msg {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.fs-chat-msg.user {
+    text-align: right;
+    background: rgba(67, 97, 238, 0.25);
+}
+
+.fs-chat-msg.system {
+    text-align: left;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.fs-chat-sender {
+    font-weight: 600;
+    margin-right: 6px;
+    opacity: 0.85;
+}
+
+.fs-chat-text {
+    word-break: break-word;
+}
+
+/* Bottom control buttons */
+.fs-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    padding: 14px 16px 18px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+    z-index: 11;
+}
+
+.fs-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.fs-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.12);
+}
+
+.fs-btn:active {
+    transform: scale(0.95);
+}
+
+.fs-btn-danger {
+    background: rgba(220, 53, 69, 0.55);
+}
+
+.fs-btn-danger:hover {
+    background: rgba(220, 53, 69, 0.85);
+}
+
+/* Fullscreen video adjustments */
+.video-container:fullscreen {
+    border-radius: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+.video-container:fullscreen video {
+    border-radius: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.video-container:fullscreen .fs-controls {
+    padding: 16px 24px 24px;
+}
+
+.video-container:fullscreen .fs-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 26px;
+}
+
+.video-container:fullscreen .fs-chat-overlay {
+    bottom: 90px;
+    font-size: 17px;
+}

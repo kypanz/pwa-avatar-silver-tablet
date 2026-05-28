@@ -64,6 +64,11 @@ export default function AvatarStreaming({
   const [isRecording, setIsRecording] = useState(false);
   // const [recButtonDisabled, setRecButtonDisabled] = useState(false);
 
+  const [showChat, setShowChat] = useState(false);
+  const [isMicActive, setIsMicActive] = useState(false);
+
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+
   // ---- Helpers ----
   const addChatMessage = (text: string, type: "user" | "system" = "user") => {
     const sender = type === "user" ? "Tú" : "Avatar";
@@ -488,10 +493,42 @@ export default function AvatarStreaming({
     }
     setConnected(false);
     setConnecting(false);
-    setAvatarReady(false); // 🔥 agregar esto
-    // setConnected(false);
-    // setConnecting(false);
+    setAvatarReady(false);
   };
+
+  const toggleMicrophone = () => {
+    if (!sttStartedRef.current) {
+      setStatusRecording("Activado");
+      if (!sttStartedRef.current) {
+        startContinuousSTT();
+        sttStartedRef.current = true;
+      }
+      setIsMicActive(true);
+    } else {
+      stopListening();
+      sttStartedRef.current = false;
+      setIsMicActive(false);
+      setStatusRecording("Desactivado");
+    }
+  };
+
+  useEffect(() => {
+    if (connected && videoContainerRef.current) {
+      videoContainerRef.current.requestFullscreen().catch(() => {
+        // Fullscreen no soportado o denegado
+      });
+    } else if (!connected && document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, [connected]);
+
+  useEffect(() => {
+    const handleChange = () => {
+      // no hacemos nada al salir de fullscreen, solo actualizar estado interno
+    };
+    document.addEventListener("fullscreenchange", handleChange);
+    return () => document.removeEventListener("fullscreenchange", handleChange);
+  }, []);
 
   // Added by Kyp4nz
   const sendFromSTTChat = async (text: string) => {
@@ -1038,7 +1075,7 @@ export default function AvatarStreaming({
             </div>
 
             <div className="card-body p-0">
-              <div className="video-container">
+              <div className="video-container" ref={videoContainerRef}>
                 <video
                   ref={videoRef}
                   autoPlay
@@ -1046,6 +1083,50 @@ export default function AvatarStreaming({
                   style={{ width: "400px" }}
                 ></video>
                 <audio ref={audioRef} autoPlay></audio>
+
+                {connected && (
+                  <>
+                    {showChat && (
+                      <div className="fs-chat-overlay" ref={chatContainerRef}>
+                        {chatMessages.map((m, i) => (
+                          <div
+                            key={i}
+                            className={`fs-chat-msg ${m.type === "user" ? "user" : "system"}`}
+                          >
+                            <span className="fs-chat-sender">{m.sender}:</span>
+                            <span className="fs-chat-text">{m.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="fs-controls">
+                      <button
+                        className="fs-btn"
+                        onClick={() => setShowChat(!showChat)}
+                        title="Chat"
+                      >
+                        <i className="bi bi-chat-dots"></i>
+                      </button>
+                      <button
+                        className="fs-btn"
+                        onClick={toggleMicrophone}
+                        title="Micrófono"
+                      >
+                        <i
+                          className={`bi ${isMicActive ? "bi-mic" : "bi-mic-mute"}`}
+                        ></i>
+                      </button>
+                      <button
+                        className="fs-btn fs-btn-danger"
+                        onClick={stop}
+                        title="Desconectar"
+                      >
+                        <i className="bi bi-telephone-x"></i>
+                      </button>
+                    </div>
+                  </>
+                )}
 
                 <div
                   className={`recording-indicator ${isRecording ? "active" : ""}`}
@@ -1056,7 +1137,7 @@ export default function AvatarStreaming({
                 </div>
               </div>
 
-              <div className="controls-container mt-3">
+              <div className="controls-container mt-3" style={{ display: connected ? 'none' : '' }}>
                 {!connected && !connecting && (
                   <button className="btn btn-primary me-2" onClick={start}>
                     <i className="bi bi-play-fill"></i> Conectar
@@ -1067,21 +1148,6 @@ export default function AvatarStreaming({
                     <i className="bi bi-stop-fill"></i> Desconectar
                   </button>
                 )}
-                {/*
-                <div className="mt-3 video-size-control">
-                  <label htmlFor="video-size-slider" className="form-label">Video size: <span id="video-size-value">{videoSize}%</span></label>
-                  <input id="video-size-slider" type="range" className="form-range" min={50} max={150} value={videoSize} onChange={(e) => setVideoSize(Number(e.target.value))} />
-                </div>
-               
-                <div className="mt-3 d-flex gap-2">
-                  <button className="btn btn-outline-primary" onClick={startLocalRecordingAndRecognition} disabled={isRecording || recButtonDisabled}>
-                    <i className="bi bi-record-fill"></i> Start Local Rec
-                  </button>
-                  <button className="btn btn-outline-danger" onClick={stopLocalRecordingAndRecognition} disabled={!isRecording}>
-                    <i className="bi bi-stop-fill"></i> Stop Local Rec
-                  </button>
-                </div>
-*/}
               </div>
             </div>
           </div>
