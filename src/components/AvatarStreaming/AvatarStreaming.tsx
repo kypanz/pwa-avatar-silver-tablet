@@ -66,6 +66,8 @@ export default function AvatarStreaming({
 
   const [showChat, setShowChat] = useState(false);
   const [isMicActive, setIsMicActive] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fsChatInput, setFsChatInput] = useState("");
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
@@ -524,11 +526,42 @@ export default function AvatarStreaming({
 
   useEffect(() => {
     const handleChange = () => {
-      // no hacemos nada al salir de fullscreen, solo actualizar estado interno
+      setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener("fullscreenchange", handleChange);
     return () => document.removeEventListener("fullscreenchange", handleChange);
   }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else if (videoContainerRef.current) {
+      videoContainerRef.current.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const handleFsChatSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = fsChatInput.trim();
+    if (!text) return;
+    addChatMessage(text, "user");
+    setFsChatInput("");
+    requestStartTimeRef.current = performance.now();
+    fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        emotion: emotion.current,
+        type: "chat",
+        interrupt: true,
+        sessionid: Number(sessionId),
+      }),
+    }).catch((err) => {
+      console.error("Error enviando chat desde fullscreen:", err);
+      addChatMessage("Fallo al enviar mensaje.", "system");
+    });
+  };
 
   // Added by Kyp4nz
   const sendFromSTTChat = async (text: string) => {
@@ -1087,16 +1120,30 @@ export default function AvatarStreaming({
                 {connected && (
                   <>
                     {showChat && (
-                      <div className="fs-chat-overlay" ref={chatContainerRef}>
-                        {chatMessages.map((m, i) => (
-                          <div
-                            key={i}
-                            className={`fs-chat-msg ${m.type === "user" ? "user" : "system"}`}
-                          >
-                            <span className="fs-chat-sender">{m.sender}:</span>
-                            <span className="fs-chat-text">{m.text}</span>
-                          </div>
-                        ))}
+                      <div className="fs-chat-overlay">
+                        <div className="fs-chat-messages" ref={chatContainerRef}>
+                          {chatMessages.map((m, i) => (
+                            <div
+                              key={i}
+                              className={`fs-chat-msg ${m.type === "user" ? "user" : "system"}`}
+                            >
+                              <span className="fs-chat-sender">{m.sender}:</span>
+                              <span className="fs-chat-text">{m.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <form className="fs-chat-form" onSubmit={handleFsChatSubmit}>
+                          <input
+                            className="fs-chat-input"
+                            type="text"
+                            value={fsChatInput}
+                            onChange={(e) => setFsChatInput(e.target.value)}
+                            placeholder="Escribe un mensaje..."
+                          />
+                          <button className="fs-chat-send" type="submit">
+                            <i className="bi bi-send"></i>
+                          </button>
+                        </form>
                       </div>
                     )}
 
@@ -1116,6 +1163,13 @@ export default function AvatarStreaming({
                         <i
                           className={`bi ${isMicActive ? "bi-mic" : "bi-mic-mute"}`}
                         ></i>
+                      </button>
+                      <button
+                        className="fs-btn"
+                        onClick={toggleFullscreen}
+                        title="Pantalla completa"
+                      >
+                        <i className={`bi ${isFullscreen ? "bi-fullscreen-exit" : "bi-fullscreen"}`}></i>
                       </button>
                       <button
                         className="fs-btn fs-btn-danger"
