@@ -1113,7 +1113,6 @@ export default function AvatarStreaming({
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  style={{ width: "400px" }}
                 ></video>
                 <audio ref={audioRef} autoPlay></audio>
 
