@@ -67,6 +67,8 @@ export default function AvatarStreaming({
   const [showChat, setShowChat] = useState(false);
   const [isMicActive, setIsMicActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sensitivity, setSensitivity] = useState(70);
+  const sensitivityRef = useRef(70);
   const [fsChatInput, setFsChatInput] = useState("");
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -781,8 +783,8 @@ export default function AvatarStreaming({
 
       const volume = Math.sqrt(sum / dataArray.length);
 
-      // 🔥 threshold ajustable
-      if (volume > 0.05) {
+      const threshold = 0.15 - (sensitivityRef.current / 100) * 0.14;
+      if (volume > threshold) {
         if (!interruptingRef.current) {
           interruptingRef.current = true;
 
@@ -1163,6 +1165,24 @@ export default function AvatarStreaming({
                           className={`bi ${isMicActive ? "bi-mic" : "bi-mic-mute"}`}
                         ></i>
                       </button>
+                      {isMicActive && (
+                        <div className="fs-sensitivity">
+                          <i className="bi bi-soundwave"></i>
+                          <input
+                            type="range"
+                            className="fs-sensitivity-slider"
+                            min="0"
+                            max="100"
+                            value={sensitivity}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setSensitivity(val);
+                              sensitivityRef.current = val;
+                            }}
+                            title="Sensibilidad del micrófono"
+                          />
+                        </div>
+                      )}
                       <button
                         className="fs-btn"
                         onClick={toggleFullscreen}
@@ -1300,6 +1320,25 @@ export default function AvatarStreaming({
                         >
                           {statusRecording}
                         </span>{" "}
+                      </div>
+                      <div className="mt-2 d-flex align-items-center gap-2">
+                        <i className="bi bi-soundwave"></i>
+                        <label className="form-label mb-0" style={{ fontSize: "14px" }}>
+                          Sensibilidad micrófono
+                        </label>
+                        <input
+                          type="range"
+                          className="form-range"
+                          style={{ width: "100px" }}
+                          min="0"
+                          max="100"
+                          value={sensitivity}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setSensitivity(val);
+                            sensitivityRef.current = val;
+                          }}
+                        />
                       </div>
 
                       {/*      <div className="voice-record-btn mt-2"

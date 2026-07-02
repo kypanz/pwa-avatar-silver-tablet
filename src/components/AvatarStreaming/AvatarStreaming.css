@@ -251,6 +251,53 @@ video {
     background: rgba(220, 53, 69, 0.85);
 }
 
+.fs-sensitivity {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+    font-size: 18px;
+    opacity: 0.8;
+}
+
+.fs-sensitivity-slider {
+    width: 80px;
+    height: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.fs-sensitivity-slider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.fs-sensitivity-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.video-container:fullscreen .fs-sensitivity-slider {
+    width: 100px;
+}
+
 /* Fullscreen video adjustments */
 .video-container:fullscreen {
     border-radius: 0;
