@@ -837,7 +837,7 @@ export default function AvatarStreaming({
       }
     };
 
-    source.connect(processorRef.current);
+    lowpass.connect(processorRef.current);
     processorRef.current.connect(audioCtxRef.current.destination);
   }
 
