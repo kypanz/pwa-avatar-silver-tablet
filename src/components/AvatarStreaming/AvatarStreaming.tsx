@@ -69,6 +69,9 @@ export default function AvatarStreaming({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sensitivity, setSensitivity] = useState(70);
   const sensitivityRef = useRef(70);
+  const [bandpassFreq, setBandpassFreq] = useState(1500);
+  const bandpassFreqRef = useRef(1500);
+  const bandpassFilterRef = useRef<BiquadFilterNode | null>(null);
   const [fsChatInput, setFsChatInput] = useState("");
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -765,8 +768,14 @@ export default function AvatarStreaming({
     const analyser = audioCtxRef.current.createAnalyser();
     analyser.fftSize = 512;
 
-    source.connect(analyser);
+    const bandpass = audioCtxRef.current.createBiquadFilter();
+    bandpass.type = "bandpass";
+    bandpass.frequency.value = bandpassFreqRef.current;
+    bandpass.Q.value = 0.5;
+    source.connect(bandpass);
+    bandpass.connect(analyser);
     analyserRef.current = analyser;
+    bandpassFilterRef.current = bandpass;
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
@@ -1166,6 +1175,7 @@ export default function AvatarStreaming({
                         ></i>
                       </button>
                       {isMicActive && (
+                        <>
                         <div className="fs-sensitivity">
                           <i className="bi bi-soundwave"></i>
                           <input
@@ -1182,6 +1192,26 @@ export default function AvatarStreaming({
                             title="Sensibilidad del micrófono"
                           />
                         </div>
+                        <div className="fs-sensitivity">
+                          <i className="bi bi-activity"></i>
+                          <input
+                            type="range"
+                            className="fs-bandpass-slider"
+                            min="200"
+                            max="3500"
+                            value={bandpassFreq}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setBandpassFreq(val);
+                              bandpassFreqRef.current = val;
+                              if (bandpassFilterRef.current) {
+                                bandpassFilterRef.current.frequency.value = val;
+                              }
+                            }}
+                            title="Frecuencia de voz (Hz)"
+                          />
+                        </div>
+                        </>
                       )}
                       <button
                         className="fs-btn"
@@ -1337,6 +1367,28 @@ export default function AvatarStreaming({
                             const val = Number(e.target.value);
                             setSensitivity(val);
                             sensitivityRef.current = val;
+                          }}
+                        />
+                      </div>
+                      <div className="mt-2 d-flex align-items-center gap-2">
+                        <i className="bi bi-activity"></i>
+                        <label className="form-label mb-0" style={{ fontSize: "14px" }}>
+                          Frecuencia voz (Hz)
+                        </label>
+                        <input
+                          type="range"
+                          className="form-range"
+                          style={{ width: "100px" }}
+                          min="200"
+                          max="3500"
+                          value={bandpassFreq}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setBandpassFreq(val);
+                            bandpassFreqRef.current = val;
+                            if (bandpassFilterRef.current) {
+                              bandpassFilterRef.current.frequency.value = val;
+                            }
                           }}
                         />
                       </div>
