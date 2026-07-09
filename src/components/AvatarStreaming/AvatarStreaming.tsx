@@ -743,8 +743,23 @@ export default function AvatarStreaming({
 
     sttSocketRef.current.onmessage = (e) => {
       const msg = JSON.parse(e.data);
-      if (msg.type === "stt" && msg.final) {
+      if (msg.type === "speech_start") {
+        if (!interruptingRef.current) {
+          interruptingRef.current = true;
+          fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: "",
+              type: "interrupt",
+              interrupt: true,
+              sessionid: Number(sessionId),
+            }),
+          });
+        }
+      } else if (msg.type === "stt" && msg.final) {
         console.log("Resultado del mensaje => ", e); // kypanz test
+        interruptingRef.current = false;
         setText(msg.text);
         // setEmotion(msg.emotion);
         emotion.current = msg.emotion;
@@ -781,43 +796,8 @@ export default function AvatarStreaming({
     lowpass.connect(analyser);
     analyserRef.current = analyser;
 
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
     function detectVolume() {
       if (!analyserRef.current) return;
-
-      analyserRef.current.getByteTimeDomainData(dataArray);
-
-      let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) {
-        const v = (dataArray[i] - 128) / 128;
-        sum += v * v;
-      }
-
-      const volume = Math.sqrt(sum / dataArray.length);
-
-      const threshold = 0.15 - (sensitivityRef.current / 100) * 0.14;
-      if (volume > threshold) {
-        if (!interruptingRef.current) {
-          interruptingRef.current = true;
-
-          console.log("🛑 Interrumpiendo avatar por voz");
-
-          fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: "",
-              type: "interrupt",
-              interrupt: true,
-              sessionid: Number(sessionId),
-            }),
-          });
-        }
-      } else {
-        interruptingRef.current = false;
-      }
-
       requestAnimationFrame(detectVolume);
     }
 
