@@ -780,20 +780,7 @@ export default function AvatarStreaming({
     const analyser = audioCtxRef.current.createAnalyser();
     analyser.fftSize = 512;
 
-    // Filtros pasa-altos y pasa-bajos para aislar voz
-    const highpass = audioCtxRef.current.createBiquadFilter();
-    highpass.type = "highpass";
-    highpass.frequency.value = 300;
-    highpass.Q.value = 0.707;
-
-    const lowpass = audioCtxRef.current.createBiquadFilter();
-    lowpass.type = "lowpass";
-    lowpass.frequency.value = 2500;
-    lowpass.Q.value = 0.707;
-
-    source.connect(highpass);
-    highpass.connect(lowpass);
-    lowpass.connect(analyser);
+    source.connect(analyser);
     analyserRef.current = analyser;
 
     function detectVolume() {
@@ -817,7 +804,7 @@ export default function AvatarStreaming({
       }
     };
 
-    lowpass.connect(processorRef.current);
+    source.connect(processorRef.current);
     processorRef.current.connect(audioCtxRef.current.destination);
   }
 
