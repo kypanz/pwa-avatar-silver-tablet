@@ -1,4 +1,4 @@
-// AvatarStreaming.tsx
+// AvatarStreaming.tsx — checkpoint funcional: RMS + filtros
 import React, { useEffect, useRef, useState } from "react";
 import { endpoints } from "../../utils/endpoints/endpoints";
 import "./AvatarStreaming.css";
