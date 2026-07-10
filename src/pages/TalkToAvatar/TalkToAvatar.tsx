@@ -19,21 +19,6 @@ export default function TalkToAvatar() {
       .catch(() => {});
   }, []);
 
-  if (maintenance?.enabled) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-8">
-        <div className="max-w-md text-center space-y-6">
-          <div className="text-6xl">🔧</div>
-          <h1 className="text-3xl font-bold">Mantenimiento</h1>
-          <p className="text-lg text-gray-300">
-            {maintenance.message ||
-              "Estamos realizando tareas de mantenimiento. Vuelve a intentarlo más tarde."}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   // Para las tareas
   const processedTasksRef = useRef<Set<string>>(new Set());
 
@@ -364,6 +349,22 @@ export default function TalkToAvatar() {
   };
 
   console.log(currentBrowser);
+
+  if (maintenance?.enabled) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-8">
+        <div className="max-w-md text-center space-y-6">
+          <div className="text-6xl">🔧</div>
+          <h1 className="text-3xl font-bold">Mantenimiento</h1>
+          <p className="text-lg text-gray-300">
+            {maintenance.message ||
+              "Estamos realizando tareas de mantenimiento. Vuelve a intentarlo más tarde."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
       {/* Para verificar el navegador actual del dispositivo */}
