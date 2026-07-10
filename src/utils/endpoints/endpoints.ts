@@ -65,4 +65,7 @@ export const endpoints = {
 
   // Voices
   uploadVoice: host + "/voices/upload",
+
+  // Maintenance
+  getMaintenance: host + "/maintenance",
 };

@@ -7,6 +7,33 @@ import { Button } from "keep-react";
 import AvatarStreaming from "../../components/AvatarStreaming/AvatarStreaming";
 
 export default function TalkToAvatar() {
+  const [maintenance, setMaintenance] = useState<{
+    enabled: boolean;
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    axios
+      .get(endpoints.getMaintenance)
+      .then((res) => setMaintenance(res.data))
+      .catch(() => {});
+  }, []);
+
+  if (maintenance?.enabled) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-8">
+        <div className="max-w-md text-center space-y-6">
+          <div className="text-6xl">🔧</div>
+          <h1 className="text-3xl font-bold">Mantenimiento</h1>
+          <p className="text-lg text-gray-300">
+            {maintenance.message ||
+              "Estamos realizando tareas de mantenimiento. Vuelve a intentarlo más tarde."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Para las tareas
   const processedTasksRef = useRef<Set<string>>(new Set());
 
