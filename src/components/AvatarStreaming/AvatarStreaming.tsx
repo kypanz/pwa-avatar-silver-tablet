@@ -145,6 +145,8 @@ export default function AvatarStreaming({
 
     ws.onclose = () => {
       console.log("🧹 Assistant text WS cerrado");
+      isAvatarSpeakingRef.current = false;
+      isProcessingRef.current = false;
     };
 
     assistantWsRef.current = ws;
@@ -166,62 +168,11 @@ export default function AvatarStreaming({
         body: JSON.stringify({
           text,
           type: "echo",
-          interrupt: false,
+          interrupt: true,
           sessionid: currentState.session_id,
-          // sessionid: Number(sessionId),
         }),
       });
       addChatMessage(`solicitud enviada: "${text}"`, "system");
-      // setMessageToSay("");
-      // 🔥 FORZAR FIN DESPUÉS DE X TIEMPO
-      const estimatedDuration = Math.max(1500, text.length * 50);
-      // aprox: 50ms por carácter
-
-      setTimeout(async () => {
-        console.log("⏹ Forzando fin de habla (echo)");
-
-        try {
-          console.log("Verificando currentTaskRef : ", currentTaskRef.current);
-          if (currentTaskRef.current) {
-            await fetch(endpoints.readTask, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                task_id: currentTaskRef.current.id,
-              }),
-            });
-
-            setMessageQueue((prev: any) => prev.slice(1));
-            currentTaskRef.current = null;
-          }
-        } catch (err) {
-          console.error("Error marcando tarea como leída", err);
-        } finally {
-          // 🔥 SIEMPRE se ejecuta pase lo que pase
-          isAvatarSpeakingRef.current = false;
-          isProcessingRef.current = false;
-        }
-      }, estimatedDuration);
-
-      // setTimeout(async () => {
-      //   console.log("⏹ Forzando fin de habla (echo)");
-      //
-      //   isAvatarSpeakingRef.current = false;
-      //   isProcessingRef.current = false;
-      //
-      //   if (currentTaskRef.current) {
-      //     await fetch(endpoints.readTask, {
-      //       method: "POST",
-      //       headers: { "Content-Type": "application/json" },
-      //       body: JSON.stringify({
-      //         task_id: currentTaskRef.current.id,
-      //       }),
-      //     });
-      //     console.log("Queue actual : ", messageQueue);
-      //     setMessageQueue((prev: any) => prev.slice(1));
-      //     currentTaskRef.current = null;
-      //   }
-      // }, estimatedDuration);
     } catch (err) {
       console.error("Error enviando /human echo:", err);
       addChatMessage("Fallo al enviar TTS al backend.", "system");
