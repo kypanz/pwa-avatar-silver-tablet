@@ -46,6 +46,7 @@ export default function AvatarStreaming({
   // Para las tareas
   const [avatarReady, setAvatarReady] = useState(false);
   const currentTaskRef = useRef<{ id: string; text: string } | null>(null);
+  const [queueTick, setQueueTick] = useState(0);
 
   // Para medir tiempos
   const requestStartTimeRef = useRef<number | null>(null);
@@ -202,13 +203,10 @@ export default function AvatarStreaming({
 
       await sendScheduledEcho({ text: next.text });
       isAvatarSpeakingRef.current = true;
-      // isProcessingRef.current = false;
-
-      // ⚠️ NO eliminar ni marcar como leída acá
     };
 
     processNext();
-  }, [messageQueue, avatarReady, sessionId]);
+  }, [messageQueue, avatarReady, sessionId, queueTick]);
 
   // useEffect(() => {
   //   let running = false;
@@ -988,6 +986,7 @@ export default function AvatarStreaming({
       console.log("🔴 Avatar terminó");
       isAvatarSpeakingRef.current = false;
       isProcessingRef.current = false;
+      setQueueTick((t) => t + 1);
     };
 
     const handlePause = () => {
