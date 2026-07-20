@@ -12,6 +12,6 @@ This repository is used to handle the final user tablet with the user custom con
   <img src="docs/logos/Logotipo-de-la-Secretar-a-de-Estado-de-Digitalizaci-n-e-Inteligencia-Artificial.png" alt="Secretaría de Estado de Digitalización e Inteligencia Artificial" height="80" />
 </p>
 <p align="left">
-  <img src="docs/logos/Cartel-AID-G-Cognitus.jpg" alt="AID G Cognitus" height="120" />
+  <img src="docs/logos/Cartel-AID-G-Cognitus.jpg" alt="AID G Cognitus" height="650" />
 </p> 
 
