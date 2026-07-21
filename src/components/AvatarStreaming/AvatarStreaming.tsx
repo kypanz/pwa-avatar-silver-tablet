@@ -23,6 +23,7 @@ export default function AvatarStreaming({
   // Para tareas
   const isProcessingRef = useRef(false);
   const isAvatarSpeakingRef = useRef(false);
+  const lastAvatarTextRef = useRef<string>("");
 
   const analyserRef = useRef<AnalyserNode | null>(null);
   const interruptingRef = useRef(false);
@@ -105,6 +106,7 @@ export default function AvatarStreaming({
         console.log("Evento completo : ", event);
         console.log("Respuesta onmessage => ", data);
         if (data.text) {
+          lastAvatarTextRef.current = data.text;
           if (requestStartTimeRef.current) {
             const latency =
               (performance.now() - requestStartTimeRef.current) / 1000;
@@ -715,6 +717,21 @@ export default function AvatarStreaming({
         sendFromSTTChat(msg.text);
         console.log("Emocion actual => ", emotion, msg.emotion);
         setStatusRecording("Activado");
+      } else if (msg.type === "no_speech") {
+        console.log("🔇 Sin transcripción, reanudando avatar...");
+        interruptingRef.current = false;
+        if (lastAvatarTextRef.current) {
+          fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: lastAvatarTextRef.current,
+              type: "echo",
+              interrupt: true,
+              sessionid: Number(sessionId),
+            }),
+          });
+        }
       }
     };
 
