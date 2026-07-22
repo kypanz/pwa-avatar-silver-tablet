@@ -765,7 +765,7 @@ export default function AvatarStreaming({
       } else if (msg.type === "no_speech") {
         console.log("🔇 Sin transcripción, reanudando avatar...");
         interruptingRef.current = false;
-        if (lastAvatarTextRef.current) {
+        if (isMicActive && lastAvatarTextRef.current) {
           fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
