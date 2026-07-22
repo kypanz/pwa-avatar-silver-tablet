@@ -51,6 +51,7 @@ export default function AvatarStreaming({
 
   // Para medir tiempos
   const requestStartTimeRef = useRef<number | null>(null);
+  const lastTimingRef = useRef<any>(null);
 
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
     {
@@ -103,6 +104,28 @@ export default function AvatarStreaming({
     ws.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
+
+        // Mensaje de solo timing (despues de TTS/GPU)
+        if (data.timing && !data.text) {
+          const t = data.timing;
+          if (lastTimingRef.current) {
+            if (t.tts_time != null) {
+              lastTimingRef.current.tts_time = t.tts_time;
+            }
+            if (t.gpu_time != null) {
+              lastTimingRef.current.gpu_time = t.gpu_time;
+            }
+          }
+          if (requestStartTimeRef.current) {
+            const tt = lastTimingRef.current;
+            const totalMs = performance.now() - requestStartTimeRef.current;
+            const ttsMs = tt.tts_time != null ? (tt.tts_time * 1000).toFixed(0) : "...";
+            const gpuMs = tt.gpu_time != null ? (tt.gpu_time * 1000).toFixed(0) : "...";
+            console.log(`  TTS: ${ttsMs}ms | GPU: ${gpuMs}ms | Total: ${totalMs.toFixed(0)}ms`);
+          }
+          return;
+        }
+
         if (data.text) {
           lastAvatarTextRef.current = data.text;
 
@@ -117,12 +140,8 @@ export default function AvatarStreaming({
               const llmMs = t.llm_end && t.llm_start
                 ? ((t.llm_end - t.llm_start) * 1000).toFixed(0)
                 : "?";
-              const ttsMs = t.tts_time
-                ? (t.tts_time * 1000).toFixed(0)
-                : "?";
-              const gpuMs = t.gpu_time
-                ? (t.gpu_time * 1000).toFixed(0)
-                : "?";
+
+              lastTimingRef.current = { ...t };
 
               console.log(
                 `%c⏱ Lipsync timing`,
@@ -134,8 +153,7 @@ export default function AvatarStreaming({
               );
               console.log(`  Servidor total: ${serverTotal}ms`);
               console.log(`    LLM: ${llmMs}ms`);
-              console.log(`    TTS: ${ttsMs}ms`);
-              console.log(`    GPU: ${gpuMs}ms`);
+              console.log(`    TTS: ... | GPU: ...`);
             } else {
               console.log(
                 `⏱ Tiempo total (req → text): ${totalMs.toFixed(0)}ms`,
@@ -144,7 +162,6 @@ export default function AvatarStreaming({
           }
 
           addChatMessage(data.text, "system");
-          console.log("onmessage currentTaskRef : ", currentTaskRef.current);
           if (currentTaskRef.current) {
             await fetch(endpoints.readTask, {
               method: "POST",
