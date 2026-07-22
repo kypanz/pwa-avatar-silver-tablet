@@ -103,16 +103,46 @@ export default function AvatarStreaming({
     ws.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("Evento completo : ", event);
-        console.log("Respuesta onmessage => ", data);
         if (data.text) {
           lastAvatarTextRef.current = data.text;
-          if (requestStartTimeRef.current) {
-            const latency =
-              (performance.now() - requestStartTimeRef.current) / 1000;
 
-            console.log("⏱ Tiempo de respuesta:", latency, "segundos");
+          if (requestStartTimeRef.current) {
+            const totalMs = performance.now() - requestStartTimeRef.current;
+
+            if (data.timing) {
+              const t = data.timing;
+              const serverTotal = t.llm_end && t.t0
+                ? ((t.llm_end - t.t0) * 1000).toFixed(0)
+                : "?";
+              const llmMs = t.llm_end && t.llm_start
+                ? ((t.llm_end - t.llm_start) * 1000).toFixed(0)
+                : "?";
+              const ttsMs = t.tts_time
+                ? (t.tts_time * 1000).toFixed(0)
+                : "?";
+              const gpuMs = t.gpu_time
+                ? (t.gpu_time * 1000).toFixed(0)
+                : "?";
+
+              console.log(
+                `%c⏱ Lipsync timing`,
+                "color: #00e5ff; font-weight: bold; font-size: 13px",
+              );
+              console.log(
+                `  Total (req → text): %c${totalMs.toFixed(0)}ms`,
+                "color: #76ff03; font-weight: bold",
+              );
+              console.log(`  Servidor total: ${serverTotal}ms`);
+              console.log(`    LLM: ${llmMs}ms`);
+              console.log(`    TTS: ${ttsMs}ms`);
+              console.log(`    GPU: ${gpuMs}ms`);
+            } else {
+              console.log(
+                `⏱ Tiempo total (req → text): ${totalMs.toFixed(0)}ms`,
+              );
+            }
           }
+
           addChatMessage(data.text, "system");
           console.log("onmessage currentTaskRef : ", currentTaskRef.current);
           if (currentTaskRef.current) {
@@ -124,19 +154,14 @@ export default function AvatarStreaming({
               }),
             });
 
-            // 🔥 eliminar de la cola recién ahora
             setMessageQueue((prev: any) => prev.slice(1));
 
             currentTaskRef.current = null;
-
-            // 🔓 liberar procesamiento
-            // isProcessingRef.current = false;
           }
         }
       } catch (err) {
         console.error("Error parseando assistant_text:", err);
       } finally {
-        // 🔥 SIEMPRE se ejecuta pase lo que pase
         isAvatarSpeakingRef.current = false;
         isProcessingRef.current = false;
       }
@@ -164,6 +189,7 @@ export default function AvatarStreaming({
   const sendScheduledEcho = async ({ text }: { text: string }) => {
     if (!text || text == "") return;
 
+    requestStartTimeRef.current = performance.now();
     try {
       await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
         method: "POST",
@@ -523,6 +549,7 @@ export default function AvatarStreaming({
     // mostrar mensaje del usuario
     addChatMessage(text, "user");
     setChatInput("");
+    requestStartTimeRef.current = performance.now();
 
     try {
       await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
@@ -585,6 +612,7 @@ export default function AvatarStreaming({
     const text = textEl?.value?.trim() ?? "";
     if (!text) return;
 
+    requestStartTimeRef.current = performance.now();
     try {
       await fetch(`https://p${port}${import.meta.env.VITE_APP_AVATAR}/human`, {
         method: "POST",
@@ -995,8 +1023,15 @@ export default function AvatarStreaming({
     if (!audio) return;
 
     const handlePlay = () => {
-      console.log("🟢 Avatar hablando");
       isAvatarSpeakingRef.current = true;
+      if (requestStartTimeRef.current) {
+        const webrtcMs = performance.now() - requestStartTimeRef.current;
+        console.log(
+          `%c  WebRTC (req → audio play): %c${webrtcMs.toFixed(0)}ms`,
+          "color: #ffb300",
+          "color: #76ff03; font-weight: bold",
+        );
+      }
     };
 
     const handleEnded = () => {
