@@ -107,6 +107,7 @@ export default function AvatarStreaming({
         // Mensaje de solo timing (desde basereal.py al primer frame WebRTC)
         if (data.timing && !data.text) {
           const t = data.timing;
+          console.log("📦 Timing recibido del backend:", t);
           const totalMs = t.webrtc_end && t.t0
             ? ((t.webrtc_end - t.t0) * 1000).toFixed(0)
             : "?";
@@ -134,6 +135,7 @@ export default function AvatarStreaming({
 
         if (data.text) {
           lastAvatarTextRef.current = data.text;
+          console.log("🗣️ Avatar:", data.text);
           addChatMessage(data.text, "system");
           if (currentTaskRef.current) {
             await fetch(endpoints.readTask, {
