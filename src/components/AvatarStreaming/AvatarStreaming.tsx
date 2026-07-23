@@ -51,7 +51,6 @@ export default function AvatarStreaming({
 
   // Para medir tiempos
   const requestStartTimeRef = useRef<number | null>(null);
-  const lastTimingRef = useRef<any>(null);
 
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
     {
@@ -105,62 +104,36 @@ export default function AvatarStreaming({
       try {
         const data = JSON.parse(event.data);
 
-        // Mensaje de solo timing (despues de TTS/GPU)
+        // Mensaje de solo timing (desde basereal.py al primer frame WebRTC)
         if (data.timing && !data.text) {
           const t = data.timing;
-          if (lastTimingRef.current) {
-            if (t.tts_time != null) {
-              lastTimingRef.current.tts_time = t.tts_time;
-            }
-            if (t.gpu_time != null) {
-              lastTimingRef.current.gpu_time = t.gpu_time;
-            }
-          }
-          if (requestStartTimeRef.current) {
-            const tt = lastTimingRef.current;
-            const totalMs = performance.now() - requestStartTimeRef.current;
-            const ttsMs = tt.tts_time != null ? (tt.tts_time * 1000).toFixed(0) : "...";
-            const gpuMs = tt.gpu_time != null ? (tt.gpu_time * 1000).toFixed(0) : "...";
-            console.log(`  TTS: ${ttsMs}ms | GPU: ${gpuMs}ms | Total: ${totalMs.toFixed(0)}ms`);
-          }
+          const totalMs = t.webrtc_end && t.t0
+            ? ((t.webrtc_end - t.t0) * 1000).toFixed(0)
+            : "?";
+          const llmMs = t.llm_end && t.llm_start
+            ? ((t.llm_end - t.llm_start) * 1000).toFixed(0)
+            : "?";
+          const ttsMs = t.tts_end && t.tts_start
+            ? ((t.tts_end - t.tts_start) * 1000).toFixed(0)
+            : "?";
+          const gpuMs = t.gpu_end && t.gpu_start
+            ? ((t.gpu_end - t.gpu_start) * 1000).toFixed(0)
+            : "?";
+
+          console.log(
+            `%c⏱ Lipsync timing (backend completo)`,
+            "color: #00e5ff; font-weight: bold; font-size: 13px",
+          );
+          console.log(`  Total (req → WebRTC): %c${totalMs}ms`, "color: #76ff03; font-weight: bold");
+          console.log(`    LLM: ${llmMs}ms`);
+          console.log(`    TTS: ${ttsMs}ms`);
+          console.log(`    GPU: ${gpuMs}ms`);
+          // NO resetear flags — esto es solo info
           return;
         }
 
         if (data.text) {
           lastAvatarTextRef.current = data.text;
-
-          if (requestStartTimeRef.current) {
-            const totalMs = performance.now() - requestStartTimeRef.current;
-
-            if (data.timing) {
-              const t = data.timing;
-              const serverTotal = t.llm_end && t.t0
-                ? ((t.llm_end - t.t0) * 1000).toFixed(0)
-                : "?";
-              const llmMs = t.llm_end && t.llm_start
-                ? ((t.llm_end - t.llm_start) * 1000).toFixed(0)
-                : "?";
-
-              lastTimingRef.current = { ...t };
-
-              console.log(
-                `%c⏱ Lipsync timing`,
-                "color: #00e5ff; font-weight: bold; font-size: 13px",
-              );
-              console.log(
-                `  Total (req → text): %c${totalMs.toFixed(0)}ms`,
-                "color: #76ff03; font-weight: bold",
-              );
-              console.log(`  Servidor total: ${serverTotal}ms`);
-              console.log(`    LLM: ${llmMs}ms`);
-              console.log(`    TTS: ... | GPU: ...`);
-            } else {
-              console.log(
-                `⏱ Tiempo total (req → text): ${totalMs.toFixed(0)}ms`,
-              );
-            }
-          }
-
           addChatMessage(data.text, "system");
           if (currentTaskRef.current) {
             await fetch(endpoints.readTask, {
@@ -1041,14 +1014,6 @@ export default function AvatarStreaming({
 
     const handlePlay = () => {
       isAvatarSpeakingRef.current = true;
-      if (requestStartTimeRef.current) {
-        const webrtcMs = performance.now() - requestStartTimeRef.current;
-        console.log(
-          `%c  WebRTC (req → audio play): %c${webrtcMs.toFixed(0)}ms`,
-          "color: #ffb300",
-          "color: #76ff03; font-weight: bold",
-        );
-      }
     };
 
     const handleEnded = () => {
