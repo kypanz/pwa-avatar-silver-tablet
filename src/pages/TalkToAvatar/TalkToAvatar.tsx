@@ -367,6 +367,16 @@ export default function TalkToAvatar() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 text-blue-900 ">
+      {/* Logos de entidades financiadoras */}
+      <div className="pt-4 pb-4 flex flex-col items-center gap-3">
+        <p className="text-xs text-gray-400">Entidades financiadoras</p>
+        <div className="flex items-center justify-center gap-6 flex-wrap">
+          <img src="/logos/ES-Financiado-por-la-Uni-n-Europea-RGB-POS.png" alt="Financiado por la Unión Europea" className="h-10 object-contain" />
+          <img src="/logos/Logo-PRTR-tres-l-neas-COLOR.png" alt="PRTR" className="h-10 object-contain" />
+          <img src="/logos/Logotipo-de-la-Secretar-a-de-Estado-de-Digitalizaci-n-e-Inteligencia-Artificial.png" alt="Secretaría de Estado de Digitalización e IA" className="h-10 object-contain" />
+        </div>
+      </div>
+
       {/* Para verificar el navegador actual del dispositivo */}
       {/* <h1 style={{fontSize:'25px', color:"orange"}}>Navegador actual : {navigator.userAgent.toLowerCase()} </h1> */}
 
