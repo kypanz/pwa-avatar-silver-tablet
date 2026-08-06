@@ -13,10 +13,25 @@ export default function TalkToAvatar() {
   } | null>(null);
 
   useEffect(() => {
-    axios
-      .get(endpoints.getMaintenance)
-      .then((res) => setMaintenance(res.data))
-      .catch(() => {});
+    let lastEnabled: boolean | null = null;
+
+    const checkMaintenance = () => {
+      axios
+        .get(endpoints.getMaintenance)
+        .then((res) => {
+          setMaintenance(res.data);
+          const enabled = res.data.enabled;
+          if (enabled && lastEnabled === false) {
+            window.location.reload();
+          }
+          lastEnabled = enabled;
+        })
+        .catch(() => {});
+    };
+
+    checkMaintenance();
+    const intervalId = setInterval(checkMaintenance, 30000);
+    return () => clearInterval(intervalId);
   }, []);
 
   // Para las tareas
